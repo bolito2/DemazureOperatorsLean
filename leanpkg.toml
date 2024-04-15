@@ -1,0 +1,8 @@
+[package]
+name = "Demazure operators"
+version = "0.1"
+lean_version = "leanprover-community/lean:4.7.0"
+path = "DemazureOperators"
+
+[dependencies]
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "d4f69d96f3532729da8ebb763f4bc26fcf640f06"}
