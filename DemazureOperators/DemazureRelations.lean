@@ -1,6 +1,6 @@
-import LeanCourse.Project.Demazure
-import LeanCourse.Project.DemazureAux
-import LeanCourse.Project.DemazureAuxRelations
+import DemazureOperators.Demazure
+import DemazureOperators.DemazureAux
+import DemazureOperators.DemazureAuxRelations
 
 noncomputable section
 open MvPolynomial

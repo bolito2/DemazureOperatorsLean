@@ -1,5 +1,5 @@
-import LeanCourse.Project.Demazure
-import LeanCourse.Project.DemazureAux
+import DemazureOperators.Demazure
+import DemazureOperators.DemazureAux
 
 noncomputable section
 namespace Demazure
@@ -60,11 +60,9 @@ lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : |
 
     by_cases c0 : k = Fin.castSucc i
     simp[h1,h2,h3,h4,c0]
-    simp[transposition_none h3 h4]
 
     by_cases c1 : k = Fin.succ i
     simp[h1,h2,h3,h4,c1]
-    simp[transposition_none h3 h4]
 
     by_cases c2 : k = Fin.castSucc j
     simp[h1,h2,h3,h4,c2]
@@ -103,15 +101,7 @@ lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val| 
 
   simp[swap_variables_commutes_non_adjacent i j h, h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
 
-  rw[swap_variables_none']
-  rw[swap_variables_none']
-
   ring
-
-  exact h3
-  exact h4
-  exact h2.symm
-  exact h4.symm
 
 /-- Prove some relations between Demazure operators and multiplication by monomials, in the
 adjacent and non-adjacent cases -/

@@ -1,4 +1,4 @@
-import LeanCourse.Project.Demazure
+import DemazureOperators.Demazure
 
 set_option maxHeartbeats 10000000
 
