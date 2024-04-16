@@ -36,6 +36,7 @@ jobs:
             - name: build docs with doc-gen4
               run: lake -R -Kenv=dev build DemazureOperators:docs
     deploy:
+        needs: build
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
