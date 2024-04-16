@@ -18,5 +18,5 @@ jobs:
                 ~/.elan/bin/lean --version
                 echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-            - name: build with lake
-              run: lake build DemazureOperators
+            - name: build docs with doc-gen4
+              run: lake -R -Kenv=dev build DemazureOperators:docs
