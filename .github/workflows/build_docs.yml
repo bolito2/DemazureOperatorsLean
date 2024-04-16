@@ -1,4 +1,4 @@
-name: build docs for DemazureOperators
+name: deploy lean docs for DemazureOperators
 
 on:
     push:
@@ -20,6 +20,7 @@ concurrency:
 
 jobs:   
     deploy:
+        name: deploy lean docs for DemazureOperators
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
@@ -40,9 +41,6 @@ jobs:
 
             - name: Setup Pages
               uses: actions/configure-pages@v5
-
-            - name: test
-              run: ls
 
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
