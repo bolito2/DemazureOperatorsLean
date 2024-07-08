@@ -31,3 +31,4 @@ wdIn.txt
 wdOut.txt
 
 .venv/
+/.lake
