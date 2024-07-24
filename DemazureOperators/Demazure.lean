@@ -230,16 +230,42 @@ lemma wario (i : Fin n) : (X (Fin.castSucc i) : MvPolynomial (Fin (n + 1)) ℂ) 
   rw [if_neg h]
   simp
 
+lemma wahootime {a b : Fin (n + 1)} (h : a > b) : a ≠ 0 := by
+  intro h'
+  rw[h'] at h
+  contradiction
+
+def mario (k i' : Fin (n + 1)) : Polynomial (MvPolynomial (Fin n) ℂ) := by
+  by_cases h1 : k > i'
+  exact Polynomial.C (X (Fin.pred k (wahootime h1)))
+  by_cases h2 : k = i'
+  exact Polynomial.X
+  have h3 : k < n := by
+    rw[le_of_not_gt] at h1
+
+  exact Polynomial.C (X k)
+
+
 /- Now we can use these to define the demazure numerator. We distinguish the variable x_i
  to perform division by (x_i - x_(i+1)) later (only univariable division is supported) -/
 
-def DemazureNumerator (i : Fin n) (p : MvPolynomial (Fin (n + 1)) ℂ) : Polynomial (MvPolynomial (Fin n) ℂ)  :=
+def DemazureNumerator (i : Fin n) (p : MvPolynomial (Fin (n + 1)) ℂ) : Polynomial (MvPolynomial (Fin n) ℂ)  := by
   let i' : Fin (n + 1) := Fin.castSucc i
   let i'_plus_1 : Fin (n + 1) := Fin.succ i
 
   let numerator := p - SwapVariables i' i'_plus_1 p
+
+
+  let g := Polynomial.C.comp MvPolynomial.C
+  let f := fun k ↦ by_cases (h : k > i')
+
+
+  if (k = i') then Polynomial.X else if (mario k) then Polynomial.C (X (Fin.pred k (wahootime (mario k)))) else Polynomial.C (X k)
+
   let numerator_X_i_at_start : MvPolynomial (Fin (n + 1)) ℂ := SwapVariables i' 0 numerator
   (finSuccEquiv ℂ n) numerator_X_i_at_start
+
+  eval₂ g f numerator
 
 -- after all those steps we end up with this mess that we can simplify directly with the following lemma
 lemma unfold_demazure_numerator {i : Fin n} {p : MvPolynomial (Fin (n + 1)) ℂ} : DemazureNumerator i p =
@@ -303,14 +329,14 @@ lemma demazure_division_exact : ∀(i : Fin n), ∀(p : MvPolynomial (Fin (n + 1
     intro i p
     simp[DemazureNumerator, DemazureDenominator]
 
+    apply sub_eq_zero_of_eq
+    apply congr_arg
+
     simp[MvPolynomial.polynomial_eval_eval₂]
     simp[SwapVariables, SwapVariablesFun]
 
     repeat
       rw[MvPolynomial.eval₂_rename]
-
-    apply sub_eq_zero_of_eq
-    apply congr_arg
 
     apply MvPolynomial.eval₂_congr
     intro j c _ _
