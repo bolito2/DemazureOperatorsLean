@@ -350,7 +350,6 @@ def DemazureFun (i : Fin n) (p : MvPolynomial (Fin (n + 1)) ℂ) : MvPolynomial 
   let division_mv : MvPolynomial (Fin (n + 1)) ℂ := (AlgEquiv.symm (finSuccEquiv ℂ n)) division
 
   let i' : Fin (n + 1) := Fin.castSucc i
-  let n' : Fin (n + 1) := n
 
   SwapVariables i' 0 division_mv
 
