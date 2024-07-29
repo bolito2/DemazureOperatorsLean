@@ -303,14 +303,14 @@ lemma demazure_division_exact : ∀(i : Fin n), ∀(p : MvPolynomial (Fin (n + 1
     intro i p
     simp[DemazureNumerator, DemazureDenominator]
 
+    apply sub_eq_zero_of_eq
+    apply congr_arg
+
     simp[MvPolynomial.polynomial_eval_eval₂]
     simp[SwapVariables, SwapVariablesFun]
 
     repeat
       rw[MvPolynomial.eval₂_rename]
-
-    apply sub_eq_zero_of_eq
-    apply congr_arg
 
     apply MvPolynomial.eval₂_congr
     intro j c _ _
