@@ -18,6 +18,7 @@ structure PolyFraction' (n : ℕ) where
   denominator : MvPolynomial (Fin (n + 1)) ℂ
   denominator_ne_zero : denominator ≠ 0
 
+example : PolyFraction' 2 := ⟨X 0 + X 1, 1, one_ne_zero⟩
 
 def r (n : ℕ) : PolyFraction' n → PolyFraction' n → Prop :=
   fun p q => p.numerator * q.denominator = q.numerator * p.denominator
