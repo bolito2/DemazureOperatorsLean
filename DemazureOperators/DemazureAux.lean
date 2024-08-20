@@ -63,7 +63,7 @@ def mk (p : PolyFraction' n) : PolyFraction n := Quotient.mk (s n) p
 def to_frac (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction' n := ⟨p, 1, one_ne_zero⟩
 def mk' (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction n := mk ⟨p, 1, one_ne_zero⟩
 
-instance has_equiv : HasEquiv (PolyFraction' n) := instHasEquiv
+instance has_equiv : HasEquiv (PolyFraction' n) := instHasEquivOfSetoid
 
 lemma equiv_r {a b : PolyFraction' n} : (r n) a b ↔ a ≈ b := by
   rfl
