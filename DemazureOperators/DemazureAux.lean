@@ -19,6 +19,7 @@ structure PolyFraction' (n : ℕ) where
   denominator_ne_zero : denominator ≠ 0
 
 example : PolyFraction' 2 := ⟨X 0 + X 1, 1, one_ne_zero⟩
+def to_frac (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction' n := ⟨p, 1, one_ne_zero⟩
 
 def r (n : ℕ) : PolyFraction' n → PolyFraction' n → Prop :=
   fun p q => p.numerator * q.denominator = q.numerator * p.denominator
@@ -57,17 +58,18 @@ instance s (n : ℕ) : Setoid (PolyFraction' n) where
   r := r n
   iseqv := r_equiv
 
--- The quotient ring and the canonical projections from fractions and polynomials
-def PolyFraction (n : ℕ) := (Quotient (s n))
-
-def mk (p : PolyFraction' n) : PolyFraction n := Quotient.mk (s n) p
-def to_frac (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction' n := ⟨p, 1, one_ne_zero⟩
-def mk' (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction n := mk ⟨p, 1, one_ne_zero⟩
-
 instance has_equiv : HasEquiv (PolyFraction' n) := instHasEquivOfSetoid
 
 lemma equiv_r {a b : PolyFraction' n} : (r n) a b ↔ a ≈ b := by
   rfl
+
+
+-- The quotient ring and the canonical projections from fractions and polynomials
+def PolyFraction (n : ℕ) := (Quotient (s n))
+
+def mk (p : PolyFraction' n) : PolyFraction n := Quotient.mk (s n) p
+def mk' (p : MvPolynomial (Fin (n + 1)) ℂ) : PolyFraction n := mk ⟨p, 1, one_ne_zero⟩
+
 
 /- This lemmas enables us to compute the result of a lift of a function applied at a
  representant class.
@@ -168,7 +170,6 @@ lemma sub'_s {n : ℕ} : ∀ a₁ b₁ a₂ b₂ : PolyFraction' n, a₁ ≈ a�
 def sub : PolyFraction n → PolyFraction n → PolyFraction n :=
   fun p q ↦ Quotient.lift₂ (sub') (sub'_s) p q
 
--- Enable use of * notation
 def mul'{n : ℕ} : PolyFraction' n → PolyFraction' n → PolyFraction' n :=
   fun p q => ⟨p.numerator * q.numerator, p.denominator * q.denominator, mul_ne_zero p.denominator_ne_zero q.denominator_ne_zero⟩
 
