@@ -9,6 +9,7 @@ import Mathlib.Algebra.Polynomial.Basic
 import Mathlib.Algebra.MvPolynomial.Basic
 import Mathlib.Algebra.MvPolynomial.Rename
 import Mathlib.Algebra.MvPolynomial.Polynomial
+import Mathlib.RingTheory.MvPolynomial.Basic
 
 import Mathlib.Data.Finsupp.Defs
 
@@ -210,7 +211,7 @@ lemma i_ne_i_plus_1 {i : ℕ} {h : i < n + 1}  {h' : i + 1 < n + 1}  :
   rw[wario_number_one]
   linarith
 
-lemma wario (i : Fin n) : (X (Fin.castSucc i) : MvPolynomial (Fin (n + 1)) ℂ) - X (Fin.succ i) ≠ 0 := by
+lemma demazure_denominator_not_null (i : Fin n) : (X (Fin.castSucc i) : MvPolynomial (Fin (n + 1)) ℂ) - X (Fin.succ i) ≠ 0 := by
   apply MvPolynomial.ne_zero_iff.mpr
   use Finsupp.single (Fin.succ i) 1
   rw[MvPolynomial.coeff_sub]

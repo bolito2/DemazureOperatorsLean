@@ -278,7 +278,7 @@ def DemAux' (i : Fin n) : PolyFraction' n →  PolyFraction' n := fun p =>
    ⟨
     p.numerator * (SwapVariables (Fin.castSucc i) (Fin.succ i) p.denominator) - (SwapVariables (Fin.castSucc i) (Fin.succ i) p.numerator) * p.denominator,
     p.denominator * (SwapVariables (Fin.castSucc i) (Fin.succ i) p.denominator) * (X (Fin.castSucc i) - X (Fin.succ i)),
-    mul_ne_zero (mul_ne_zero p.denominator_ne_zero (swap_variables_ne_zero (Fin.castSucc i) (Fin.succ i) p.denominator p.denominator_ne_zero)) (wario i)
+    mul_ne_zero (mul_ne_zero p.denominator_ne_zero (swap_variables_ne_zero (Fin.castSucc i) (Fin.succ i) p.denominator p.denominator_ne_zero)) (demazure_denominator_not_null i)
     ⟩
 
 lemma DemAux_well_defined (i : Fin n) : ∀ (p q : PolyFraction' n) (h : p ≈ q), ((mk ∘ DemAux' i) p) = ((mk ∘ DemAux' i) q) := by
