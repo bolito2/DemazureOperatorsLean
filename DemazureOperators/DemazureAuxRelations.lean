@@ -198,7 +198,6 @@ lemma demaux_commutes_adjacent (i : Fin n) (h : i + 1 < n) : ∀ p : MvPolynomia
   repeat rw[lift_r]
   simp[DemAux']
   simp[h, Fin.castSucc, Fin.succ, Fin.castAdd, Fin.castLE]
-  norm_num
 
   have h0 : i < n + 1 := by
     linarith
