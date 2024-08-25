@@ -1,6 +1,6 @@
 import Mathlib.Data.Set.Lattice
 import Mathlib.Data.Set.Function
-import Mathlib.Analysis.Complex.Polynomial
+import Mathlib.Analysis.Complex.Polynomial.Basic
 import Init.System.IO
 
 import Mathlib.Data.Complex.Basic
