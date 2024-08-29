@@ -16,8 +16,34 @@ def nReflectionOccurrences (cs : CoxeterSystem M W) (w : List B) (t : W) : ℕ :
 def parityReflectionOccurrences (w : List B) (t : W) : ZMod 2 :=
   (nReflectionOccurrences cs w t : ZMod 2)
 
-def permutationMap (w : List B) : W × ZMod 2 → W × ZMod 2 :=
-  fun ⟨t, z⟩ => (π w * t * (π w)⁻¹ , z + (parityReflectionOccurrences cs w t))
+def nu (i : B) (t : W) : ZMod 2 :=
+  if (s i = t) then 1 else 0
+
+def nu_simpleConj_eq_nu (i : B) (t : W) (h : IsReflection cs t) : nu cs i t = nu cs i (s i * t * (s i)) := by
+  simp [nu]
+  have : s i = t ↔ s i * t = 1 := by
+    constructor
+    · intro h'
+      rw [h']
+      exact IsReflection.mul_self h
+    · intro h'
+      apply (mul_left_inj t).mp
+      simp [IsReflection.mul_self h]
+      exact h'
+
+  by_cases s i = t
+  · simp [this]
+  · simp [this]
+
+def permutationMap (i : B) : W × ZMod 2 → W × ZMod 2 :=
+  fun ⟨t, z⟩ => (s i * t * (s i)⁻¹ , z + nu cs i t)
+
+def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
+  funext ⟨t, z⟩
+  simp [permutationMap, mul_assoc]
+
+
+
 
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
   funext
