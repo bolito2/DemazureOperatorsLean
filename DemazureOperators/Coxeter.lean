@@ -2,8 +2,8 @@ import Mathlib.GroupTheory.Coxeter.Inversion
 
 open CoxeterSystem
 
-variable {B : Type*}
-variable {W : Type*} [Group W] [DecidableEq W]
+variable {B : Type}
+variable {W : Type} [Group W] [DecidableEq W]
 variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
 
 local prefix:100 "s" => cs.simple
@@ -16,34 +16,48 @@ def nReflectionOccurrences (cs : CoxeterSystem M W) (w : List B) (t : W) : ℕ :
 def parityReflectionOccurrences (w : List B) (t : W) : ZMod 2 :=
   (nReflectionOccurrences cs w t : ZMod 2)
 
-def nu (i : B) (t : W) : ZMod 2 :=
-  if (s i = t) then 1 else 0
 
-def nu_simpleConj_eq_nu (i : B) (t : W) (h : IsReflection cs t) : nu cs i t = nu cs i (s i * t * (s i)) := by
+def T : Type := {t : W // IsReflection cs t}
+
+def conj (t : T cs) (w : W) : T cs :=
+  ⟨w * t.1 * w⁻¹, IsReflection.conj t.2 w⟩
+
+lemma t_eq_conj_t (t : T cs) : t = conj cs t t.1 := by
+  simp [conj]
+
+def nu (i : B) (t : T cs) : ZMod 2 :=
+  if (s i = t.1) then 1 else 0
+
+def nu_simpleConj_eq_nu (i : B) (t : T cs) : nu cs i t = nu cs i (conj cs t (s i)) := by
   simp [nu]
+  rcases t with ⟨t, ht⟩
   have : s i = t ↔ s i * t = 1 := by
     constructor
     · intro h'
       rw [h']
-      exact IsReflection.mul_self h
+      exact IsReflection.mul_self ht
     · intro h'
       apply (mul_left_inj t).mp
-      simp [IsReflection.mul_self h]
+      simp [IsReflection.mul_self ht]
       exact h'
 
-  by_cases s i = t
-  · simp [this]
-  · simp [this]
+  by_cases h : s i = t
+  · simp [this, h, conj]
+  · simp [this, h, if_neg, conj]
 
-def permutationMap (i : B) : W × ZMod 2 → W × ZMod 2 :=
-  fun ⟨t, z⟩ => (s i * t * (s i)⁻¹ , z + nu cs i t)
+def permutationMap (i : B) : T cs × ZMod 2 → T cs × ZMod 2 :=
+  fun (t , z) => (conj cs t (s i), z + nu cs i t)
 
 def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
   funext ⟨t, z⟩
-  simp [permutationMap, mul_assoc]
-
-
-
+  simp [permutationMap]
+  constructor
+  · simp[conj, mul_assoc]
+  · rw [← nu_simpleConj_eq_nu cs i t]
+    ring_nf
+    simp
+    right
+    rfl
 
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
   funext
