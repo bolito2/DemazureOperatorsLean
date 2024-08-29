@@ -25,7 +25,14 @@ def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutatio
   sorry
 
 lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : W) (h : IsReflection cs t) :
-  cs.IsLeftInversion (cs.wordProd w) t ↔ parityReflectionOccurrences cs w t = 1 := by sorry
+  cs.IsLeftInversion (cs.wordProd w) t ↔ parityReflectionOccurrences cs w t = 1 := by
+  constructor
+  · sorry
+  · rcases cs.exists_reduced_word (π w) with ⟨u, u_reduced, hu⟩
+    rw [← hu]
+    rw [← permutationMap_comp]
+    simp [permutationMap]
+    sorry
 
 lemma odd_iff_parity_eq_one (n : ℕ) : Odd n ↔ (n : ZMod 2) = 1 := by
   simp [ZMod.eq_one_iff_odd]
