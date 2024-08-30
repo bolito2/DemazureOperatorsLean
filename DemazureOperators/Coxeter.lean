@@ -59,6 +59,14 @@ def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs 
     right
     rfl
 
+def funComp (f : α → α) (n : ℕ) : α → α :=
+  match n with
+  | 0 => id
+  | n + 1 => f ∘ funComp f n
+
+theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
+  sorry
+
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
   funext
   simp [permutationMap]
