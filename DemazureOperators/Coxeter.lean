@@ -64,8 +64,16 @@ def funComp (f : α → α) (n : ℕ) : α → α :=
   | 0 => id
   | n + 1 => f ∘ funComp f n
 
+lemma Odd.add_one : Odd n → Even (n + 1) := by
+  intro h2
+  by_contra h3
+  simp at h3
+  have contra1 : Even ((n + 1) - n) := by
+    apply Nat.Odd.sub_odd h3 h2
+  simp at contra1
+
 lemma getElem_alternatingWord (i j : B) (p : ℕ) : ∀ k : Fin ((alternatingWord i j p).length),
-  cs.simple (alternatingWord i j p)[k] = s (if Even (p + k) then i else j) := by
+  (alternatingWord i j p)[k] =  (if Even (p + k) then i else j) := by
   induction p with
   | zero =>
     rintro ⟨k, hk⟩
@@ -77,19 +85,14 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) : ∀ k : Fin ((alternatingWor
 
     induction k with
     | zero =>
-      apply congr_arg
       by_cases h2 : Even n
       · have : ¬ Even (n + 1) := by
           simp
           exact Even.add_one h2
         simp [h2, this]
       · have : Even (n + 1) := by
-          by_contra h3
-          simp at h3
           simp at h2
-          have contra1 : Even ((n + 1) - n) := by
-            apply Nat.Odd.sub_odd h3 h2
-          simp at contra1
+          exact Odd.add_one h2
         simp [h2, this]
     | succ k _ =>
       simp only [List.getElem_cons_succ]
@@ -116,12 +119,34 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) : ∀ k : Fin ((alternatingWor
         rw[← Nat.add_assoc 2 n k] at h_even
         simp [if_neg h_even]
 
-lemma centralS_equal_swapping_indices (i j : B) (p : ℕ) (k : ℕ) :
-  (Option.map cs.simple ((alternatingWord i j p).get? (k + 1))).getD 1 =
-  (Option.map cs.simple ((alternatingWord j i p).get? k)).getD 1 := by
-  match (alternatingWord i j p) with
-  | [] => simp[alternatingWord]
-  | rhs => sorry
+lemma lt_of_lt_plus_one (k n : ℕ) (h : k + 1 < n) : k < n := by linarith
+lemma alternatingWordLength_eq_reverse_alternatingWordLength (i j : B) (p : ℕ) :
+(alternatingWord i j p).length = (alternatingWord j i p).length := by simp
+
+lemma centralS_equal_swapping_indices (i j : B) (p k : ℕ) (h : k + 1 < (alternatingWord i j p).length) :
+   (alternatingWord i j p)[k+1] =
+   (alternatingWord j i p)[k]'(
+    by apply lt_of_lt_plus_one k ((alternatingWord j i p).length); simp at h; simp [h]
+  ) := by
+  let h' := getElem_alternatingWord i j p ⟨k+1, h⟩
+  simp at h'
+  rw[ h' ]
+
+  let h'' := getElem_alternatingWord j i p ⟨k, by apply lt_of_lt_plus_one k ((alternatingWord j i p).length); simp at h; simp [h]⟩
+  simp at h''
+
+  rw[h'']
+
+  by_cases h_even : Even (p + k)
+  · simp[if_pos h_even]
+    rw[← add_assoc]
+    apply Even.add_one at h_even
+    simp [h_even]
+  · simp [if_neg h_even]
+    rw[← add_assoc]
+    simp at h_even
+    apply Odd.add_one at h_even
+    simp [h_even]
 
 theorem CoxeterSystem.get_leftInvSeq (w : List B) (j : Fin w.length) :
   (cs.leftInvSeq w).get ⟨j, by simp⟩ =
@@ -139,7 +164,7 @@ lemma wario (i j : B) (p : ℕ) (k : Fin p) :
 
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j p.succ) ⟨k + 1, by simp⟩]
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord j i p.succ) ⟨k, by simp; have : k.1 < p := k.2; linarith ⟩]
-  simp
+
   sorry
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
