@@ -64,20 +64,19 @@ def funComp (f : α → α) (n : ℕ) : α → α :=
   | 0 => id
   | n + 1 => f ∘ funComp f n
 
-lemma get_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
-  cs.simple ((alternatingWord i j p).get k) = s (if Even (p + k) then i else j) := by
-  rcases k with ⟨k, hk⟩
+lemma getElem_alternatingWord (i j : B) (p : ℕ) : ∀ k : Fin ((alternatingWord i j p).length),
+  cs.simple (alternatingWord i j p)[k] = s (if Even (p + k) then i else j) := by
   induction p with
   | zero =>
+    rintro ⟨k, hk⟩
     simp[alternatingWord] at hk
   | succ n h =>
-    revert hk
     rw [alternatingWord_succ' i j n]
-    intro hk
-    rw [List.get_cons hk]
 
-    by_cases h' : k = 0
-    · simp[h']
+    rintro ⟨k, hk⟩
+
+    induction k with
+    | zero =>
       apply congr_arg
       by_cases h2 : Even n
       · have : ¬ Even (n + 1) := by
@@ -92,9 +91,30 @@ lemma get_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).
             apply Nat.Odd.sub_odd h3 h2
           simp at contra1
         simp [h2, this]
-
-
-
+    | succ k _ =>
+      simp only [List.getElem_cons_succ]
+      have : k < (alternatingWord i j n).length := by
+        simp
+        simp at hk
+        exact hk
+      simp
+      simp at h
+      rw[h ⟨k, this⟩ ]
+      simp
+      ring
+      have (m : ℕ) : Even (2 + m) ↔ Even m := by
+        have aux : m ≤ 2 + m := by linarith
+        apply (Nat.even_sub aux).mp
+        simp
+      by_cases h_even : Even (n + k)
+      · simp [if_pos h_even]
+        rw[← this (n+k)] at h_even
+        rw[← Nat.add_assoc 2 n k] at h_even
+        simp [if_pos h_even]
+      · simp [if_neg h_even]
+        rw[← this (n+k)] at h_even
+        rw[← Nat.add_assoc 2 n k] at h_even
+        simp [if_neg h_even]
 
 lemma centralS_equal_swapping_indices (i j : B) (p : ℕ) (k : ℕ) :
   (Option.map cs.simple ((alternatingWord i j p).get? (k + 1))).getD 1 =
