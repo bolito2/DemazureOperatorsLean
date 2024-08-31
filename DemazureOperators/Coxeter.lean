@@ -64,8 +64,81 @@ def funComp (f : α → α) (n : ℕ) : α → α :=
   | 0 => id
   | n + 1 => f ∘ funComp f n
 
-theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
+lemma get_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
+  cs.simple ((alternatingWord i j p).get k) = s (if Even (p + k) then i else j) := by
+  rcases k with ⟨k, hk⟩
+  induction p with
+  | zero =>
+    simp[alternatingWord] at hk
+  | succ n h =>
+    revert hk
+    rw [alternatingWord_succ' i j n]
+    intro hk
+    rw [List.get_cons hk]
+
+    by_cases h' : k = 0
+    · simp[h']
+      apply congr_arg
+      by_cases h2 : Even n
+      · have : ¬ Even (n + 1) := by
+          simp
+          exact Even.add_one h2
+        simp [h2, this]
+      · have : Even (n + 1) := by
+          by_contra h3
+          simp at h3
+          simp at h2
+          have contra1 : Even ((n + 1) - n) := by
+            apply Nat.Odd.sub_odd h3 h2
+          simp at contra1
+        simp [h2, this]
+
+
+
+
+lemma centralS_equal_swapping_indices (i j : B) (p : ℕ) (k : ℕ) :
+  (Option.map cs.simple ((alternatingWord i j p).get? (k + 1))).getD 1 =
+  (Option.map cs.simple ((alternatingWord j i p).get? k)).getD 1 := by
+  match (alternatingWord i j p) with
+  | [] => simp[alternatingWord]
+  | rhs => sorry
+
+theorem CoxeterSystem.get_leftInvSeq (w : List B) (j : Fin w.length) :
+  (cs.leftInvSeq w).get ⟨j, by simp⟩ =
+  cs.wordProd (List.take j w) * s (w.get ⟨j, by simp⟩) * (cs.wordProd (List.take j w))⁻¹ := by
+
+  have h : j < (cs.leftInvSeq w).length := by simp
+
+  rw [← List.getD_eq_get ((cs.leftInvSeq w)) 1 h]
+  rw [getD_leftInvSeq]
+  simp
+
+lemma wario (i j : B) (p : ℕ) (k : Fin p) :
+ (leftInvSeq cs (alternatingWord i j p.succ)).get ⟨k + 1, by simp⟩ =
+  MulAut.conj (s j) ((leftInvSeq cs (alternatingWord j i p.succ)).get ⟨k, by simp; have : k.1 < p := k.2; linarith ⟩) := by
+
+  rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j p.succ) ⟨k + 1, by simp⟩]
+  rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord j i p.succ) ⟨k, by simp; have : k.1 < p := k.2; linarith ⟩]
+  simp
   sorry
+
+theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
+  let wBraid := alternatingWord i j (2 * M i j)
+  let braidInvSeq := cs.leftInvSeq wBraid
+
+  have braidInvSeqNotEmpty : braidInvSeq.length > 0 := by
+    rw [length_leftInvSeq]
+    simp [alternatingWord, wBraid]
+    exact h
+
+  have h' (k : Fin (braidInvSeq.length)) : (braidInvSeq.get k) = π (alternatingWord i j (2*k + 1)) := by
+    -- Induction on k
+    have zero : (braidInvSeq.get ⟨0, braidInvSeqNotEmpty⟩) = π (alternatingWord i j 1) := by
+      simp only [braidInvSeq, alternatingWord, wBraid]
+      rw [← List.getD_eq_get (cs.leftInvSeq (alternatingWord i j (2 * M.M i j))) 1 braidInvSeqNotEmpty]
+      rw [CoxeterSystem.getD_leftInvSeq cs (alternatingWord i j (2 * M.M i j)) 0]
+      simp[braidInvSeqNotEmpty]
+      rw [alternatingWord_succ']
 
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
   funext
