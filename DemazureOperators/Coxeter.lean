@@ -158,13 +158,42 @@ theorem CoxeterSystem.get_leftInvSeq (w : List B) (j : Fin w.length) :
   rw [getD_leftInvSeq]
   simp
 
+lemma eq_flip_variables (i j : B) (p : ℕ) : (if Even p then j else i) = if Even (p + 1) then i else j := by
+  by_cases h : Even p
+  · simp [h]
+    apply Even.add_one at h
+    apply (@Nat.not_even_iff_odd (p+1)).mpr at h
+    simp [if_neg h]
+  · simp [h]
+    simp at h
+    apply Odd.add_one at h
+    simp [if_pos h]
+
+lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < (alternatingWord i j (p + 1)).length) :
+  ∀ p : ℕ, List.take (k + 1) (alternatingWord i j (p + 1)) = (if Even (p + 1 + k) then i else j) :: (List.take k (alternatingWord i j (p+1))) := by
+  induction k with
+    | zero =>
+      intro p
+      rw[alternatingWord_succ' i j p]
+      simp[alternatingWord]
+      exact eq_flip_variables i j p
+    | succ k h' =>
+      have hk : k < (alternatingWord i j (p+1)).length := lt_of_lt_plus_one k (alternatingWord i j (p+1)).length h
+      apply h' at hk
+      -- specify the requirements of p, because we need to use the induction hypothesis --
+      rw[alternatingWord_succ' i j k]
+      simp
+      rw[List.take_cons_succ (alternatingWord i j p) k hk]
+
+
 lemma wario (i j : B) (p : ℕ) (k : Fin p) :
  (leftInvSeq cs (alternatingWord i j p.succ)).get ⟨k + 1, by simp⟩ =
   MulAut.conj (s j) ((leftInvSeq cs (alternatingWord j i p.succ)).get ⟨k, by simp; have : k.1 < p := k.2; linarith ⟩) := by
 
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j p.succ) ⟨k + 1, by simp⟩]
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord j i p.succ) ⟨k, by simp; have : k.1 < p := k.2; linarith ⟩]
-
+  simp only [MulAut.conj]
+  dsimp
   sorry
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
