@@ -220,32 +220,49 @@ lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
         simp[this]
 
 
-lemma list_take_induction (i j : B) (k : ℕ) (h : k + 1 < (alternatingWord i j (2 * p)).length) :
-  ∀ p : ℕ, List.take (k + 1) (alternatingWord i j (2 * p)) = i :: (List.take k (alternatingWord j i (2 * p))) := by
-  induction k with
-    | zero =>
-      intro p
-      rw[alternatingWord_succ' i j p]
-      simp[alternatingWord]
-      exact eq_flip_variables i j p
-    | succ k h' =>
-      have hk : k < (alternatingWord i j (p+1)).length := lt_of_lt_plus_one k (alternatingWord i j (p+1)).length h
-      apply h' at hk
-      -- specify the requirements of p, because we need to use the induction hypothesis --
-      rw[alternatingWord_succ' i j k]
+lemma list_take_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+  List.take (k + 1) (alternatingWord i j (2 * p)) = i :: (List.take k (alternatingWord j i (2 * p))) := by
+
+  have h' : k < 2 * p := lt_of_lt_plus_one k (2 * p) h
+
+  by_cases h_even : Even k
+  · rw[list_take_alternatingWord j i k h']
+    rw[list_take_alternatingWord i j (k+1) h]
+    have h_odd : ¬ Even (k + 1) := by
       simp
-      rw[List.take_cons_succ (alternatingWord i j p) k hk]
+      exact Even.add_one h_even
 
+    simp [h_even, h_odd]
+    rw[alternatingWord_succ']
+    simp[h_even]
 
-lemma wario (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+  · rw[list_take_alternatingWord j i k h']
+    rw[list_take_alternatingWord i j (k+1) h]
+    have h_odd : Even (k + 1) := by
+      simp at h_even
+      exact Odd.add_one h_even
+
+    simp [h_even, h_odd]
+    rw[alternatingWord_succ']
+    simp[h_even]
+
+lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
  (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k + 1, by simp; exact h⟩ =
-  MulAut.conj (s j) ((leftInvSeq cs (alternatingWord j i (2 * p))).get ⟨k, by simp; linarith ⟩) := by
+  MulAut.conj (s i) ((leftInvSeq cs (alternatingWord j i (2 * p))).get ⟨k, by simp; linarith ⟩) := by
 
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j (2 * p)) ⟨k + 1, by simp; exact h⟩]
   rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord j i (2 * p)) ⟨k, by simp; linarith ⟩]
   simp only [MulAut.conj]
   dsimp
-  sorry
+
+  have h_take : cs.wordProd (List.take (k + 1) (alternatingWord i j (2 * p))) = cs.simple i *
+      (cs.wordProd (List.take k (alternatingWord j i (2 * p)))) := by
+    rw [list_take_induction i j p k h]
+    rw [cs.wordProd_cons]
+
+  rw [h_take]
+  simp [mul_assoc]
+  rw[centralS_equal_swapping_indices i j (2 * p) k]
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let wBraid := alternatingWord i j (2 * M i j)
