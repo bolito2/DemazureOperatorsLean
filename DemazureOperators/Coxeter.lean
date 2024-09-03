@@ -194,12 +194,31 @@ lemma what_da_sigma (i j : B) (k : ℕ) (h : k < 2 * p) :
           simp[k'] at this
           exact this
         rw[getElem_alternatingWord i j (2*p) k' ]
-        have two_p_even : Even (2 * p) := by simp
         have : Even (2 * p + k) := by
           apply Nat.even_add.mpr
           simp[h_even]
         simp[this]
       · simp [h_even] at hk
+        have h_odd : Even (k + 1) := by
+          simp at h_even
+          exact Odd.add_one h_even
+        simp [h_even, h_odd]
+        rw[← List.take_concat_get]
+        rw[alternatingWord_succ]
+        rw[← hk]
+        apply congr_arg
+        let k' : Fin (alternatingWord i j (2 * p)).length := ⟨k, by simp; exact lt_of_lt_plus_one k (2*p) h ⟩
+        suffices (alternatingWord i j (2 * p))[k'] = j from by
+          simp[k'] at this
+          exact this
+        rw[getElem_alternatingWord i j (2*p) k' ]
+
+        have : ¬ Even (2 * p + k) := by
+          simp
+          apply Nat.odd_add.mpr
+          simp[h_even]
+        simp[this]
+
 
 lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k + 1 < (alternatingWord i j (2 * p)).length) :
   ∀ p : ℕ, List.take (k + 1) (alternatingWord i j (2 * p)) = i :: (List.take k (alternatingWord j i (2 * p))) := by
