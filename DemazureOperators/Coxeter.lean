@@ -170,7 +170,7 @@ lemma eq_flip_variables (i j : B) (p : ℕ) : (if Even p then j else i) = if Eve
     apply Odd.add_one at h
     simp [if_pos h]
 
-lemma what_da_sigma (i j : B) (k : ℕ) (h : k < 2 * p) :
+lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
   List.take k (alternatingWord i j (2 * p)) = if Even k then alternatingWord i j k else alternatingWord j i k := by
   induction k with
     | zero =>
@@ -220,7 +220,7 @@ lemma what_da_sigma (i j : B) (k : ℕ) (h : k < 2 * p) :
         simp[this]
 
 
-lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k + 1 < (alternatingWord i j (2 * p)).length) :
+lemma list_take_induction (i j : B) (k : ℕ) (h : k + 1 < (alternatingWord i j (2 * p)).length) :
   ∀ p : ℕ, List.take (k + 1) (alternatingWord i j (2 * p)) = i :: (List.take k (alternatingWord j i (2 * p))) := by
   induction k with
     | zero =>
