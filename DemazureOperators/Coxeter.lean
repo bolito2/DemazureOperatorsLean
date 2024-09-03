@@ -264,6 +264,14 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
   simp [mul_assoc]
   rw[centralS_equal_swapping_indices i j (2 * p) k]
 
+theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+  (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k, by simp; linarith ⟩ = π alternatingWord i j (2 * k + 1)  := by
+  induction k with
+  | zero =>
+    simp[alternatingWord]
+    
+    simp[leftInvSeq]
+
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let wBraid := alternatingWord i j (2 * M i j)
   let braidInvSeq := cs.leftInvSeq wBraid
