@@ -1,4 +1,5 @@
 import Mathlib.GroupTheory.Coxeter.Inversion
+import Mathlib.Algebra.Group.NatPowAssoc
 
 open CoxeterSystem
 
@@ -273,7 +274,7 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
   simp [mul_assoc]
   rw[centralS_equal_swapping_indices i j (2 * p) k]
 
-theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
   (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k, by simp; linarith ⟩ = π alternatingWord j i (2 * k + 1)  := by
   have p_gt_0 : 2 * p > 0 := by linarith
 
@@ -290,11 +291,10 @@ theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k
     simp
   | succ k hk =>
     intro i j
-    have h' : k + 1 < 2 * p := lt_of_lt_plus_one (k + 1) (2 * p) h
     have h'' : k < 2 * p := by linarith
     have h_ind : (cs.leftInvSeq (alternatingWord j i (2 * p))).get ⟨k, by simp; exact h''⟩ = cs.wordProd (alternatingWord i j (2 * k + 1)) := by
-      apply hk h'
-    rw[leftInvSeq_alternatingWord_induction cs i j p k h']
+      apply hk h''
+    rw[leftInvSeq_alternatingWord_induction cs i j p k h]
     rw[h_ind]
     simp
     rw[alternatingWord_succ' j i]
@@ -305,23 +305,42 @@ theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k
     rw[wordProd_concat]
     simp[mul_assoc]
 
+lemma leftInvSeq_repeats : ∀ (k : ℕ) (h : k < M i j),
+(cs.leftInvSeq (alternatingWord i j (2 * M i j))).get ⟨M i j + k, (by simp[h]; linarith)⟩   =
+(cs.leftInvSeq (alternatingWord i j (2 * M i j))).get ⟨k, (by simp[h]; linarith)⟩ := by
+  intro k h'
+  rw[alternatingWord_of_get_leftInvSeq_alternatingWord cs i j (M i j) k]
+  rw[alternatingWord_of_get_leftInvSeq_alternatingWord cs i j (M i j) ((M i j)+k)]
+  rw[cs.prod_alternatingWord_eq_mul_pow]
+  rw[cs.prod_alternatingWord_eq_mul_pow]
+
+  have h_odd : Odd (2 * k + 1) := by
+    simp
+
+  have h_odd' : Odd (2 * ((M i j) + k) + 1) := by
+    simp
+
+  simp[h_odd, h_odd']
+
+  have two_gt_0 : 2 > 0 := by linarith
+  have h_exp : (2 * k + 1) / 2 = k := by
+    rw[add_comm]
+    rw[Nat.add_mul_div_left 1 k two_gt_0]
+    simp
+  have h_exp' : (2 * ((M i j) + k) + 1) / 2 = (M i j) + k := by
+    rw[add_comm]
+    rw[Nat.add_mul_div_left 1 ((M i j)+k) two_gt_0]
+    simp
+  rw[h_exp, h_exp']
+  rw[NatPowAssoc.npow_add]
+  simp
+  linarith
+  linarith
+
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
-  let wBraid := alternatingWord i j (2 * M i j)
-  let braidInvSeq := cs.leftInvSeq wBraid
+  let p := M i j
 
-  have braidInvSeqNotEmpty : braidInvSeq.length > 0 := by
-    rw [length_leftInvSeq]
-    simp [alternatingWord, wBraid]
-    exact h
 
-  have h' (k : Fin (braidInvSeq.length)) : (braidInvSeq.get k) = π (alternatingWord i j (2*k + 1)) := by
-    -- Induction on k
-    have zero : (braidInvSeq.get ⟨0, braidInvSeqNotEmpty⟩) = π (alternatingWord i j 1) := by
-      simp only [braidInvSeq, alternatingWord, wBraid]
-      rw [← List.getD_eq_get (cs.leftInvSeq (alternatingWord i j (2 * M.M i j))) 1 braidInvSeqNotEmpty]
-      rw [CoxeterSystem.getD_leftInvSeq cs (alternatingWord i j (2 * M.M i j)) 0]
-      simp[braidInvSeqNotEmpty]
-      rw [alternatingWord_succ']
 
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
   funext
