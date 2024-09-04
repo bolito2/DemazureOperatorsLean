@@ -120,6 +120,15 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j
         rw[← Nat.add_assoc 2 n k] at h_even
         simp [if_neg h_even]
 
+lemma getElem_alternatingWord' (i j : B) (p k : ℕ) (h : k < p) :
+  (alternatingWord i j p)[k]'(by simp; exact h) =  (if Even (p + k) then i else j) := by
+  have h' : k < (alternatingWord i j p).length := by simp; exact h
+  let k' : Fin ((alternatingWord i j p).length) := ⟨k, h'⟩
+  suffices (alternatingWord i j p)[k'] = (if Even (p + k) then i else j) from by
+    simp at this
+    exact this
+  rw[getElem_alternatingWord i j p k']
+
 lemma lt_of_lt_plus_one (k n : ℕ) (h : k + 1 < n) : k < n := by linarith
 lemma alternatingWordLength_eq_reverse_alternatingWordLength (i j : B) (p : ℕ) :
 (alternatingWord i j p).length = (alternatingWord j i p).length := by simp
@@ -265,12 +274,36 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
   rw[centralS_equal_swapping_indices i j (2 * p) k]
 
 theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
-  (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k, by simp; linarith ⟩ = π alternatingWord i j (2 * k + 1)  := by
+  (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k, by simp; linarith ⟩ = π alternatingWord j i (2 * k + 1)  := by
+  have p_gt_0 : 2 * p > 0 := by linarith
+
+  revert i j
   induction k with
   | zero =>
+    intro i j
     simp[alternatingWord]
-    
+    rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * p))) ⟨0, by simp[p_gt_0]⟩ ]
+    rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j (2 * p)) ⟨0, by simp[p_gt_0]⟩]
     simp[leftInvSeq]
+    apply congr_arg
+    rw[getElem_alternatingWord' i j (2 * p) 0 (by simp[p_gt_0])]
+    simp
+  | succ k hk =>
+    intro i j
+    have h' : k + 1 < 2 * p := lt_of_lt_plus_one (k + 1) (2 * p) h
+    have h'' : k < 2 * p := by linarith
+    have h_ind : (cs.leftInvSeq (alternatingWord j i (2 * p))).get ⟨k, by simp; exact h''⟩ = cs.wordProd (alternatingWord i j (2 * k + 1)) := by
+      apply hk h'
+    rw[leftInvSeq_alternatingWord_induction cs i j p k h']
+    rw[h_ind]
+    simp
+    rw[alternatingWord_succ' j i]
+    simp[wordProd_cons]
+    have : 2 * (k + 1) = 2 * k + 1 + 1 := by ring
+    rw[this]
+    rw[alternatingWord_succ j i]
+    rw[wordProd_concat]
+    simp[mul_assoc]
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let wBraid := alternatingWord i j (2 * M i j)
