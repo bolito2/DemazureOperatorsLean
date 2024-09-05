@@ -355,22 +355,21 @@ lemma nReflectionOccurrences_even_braidWord (t : T cs) :
 
   suffices (nReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t) = 2 * List.count (t.1) (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (M.M i j * 2)))) from by
     simp[this]
-    
+
   simp[nReflectionOccurrences]
   suffices (cs.leftInvSeq (alternatingWord i j (2 * M i j))) = (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) ++ (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) from by
     rw[this]
     simp
     ring
 
+  have m_le_two_m : M i j ≤ 2 * M i j := by linarith
   have length_eq : (cs.leftInvSeq (alternatingWord i j (2 * (M i j)))).length =
   (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j))) ++ (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j))))).length := by
-    simp
+    simp[m_le_two_m]
     ring
 
   apply List.ext_getElem length_eq
   intro k hk hk'
-
-  have m_le_two_m : M i j ≤ 2 * M i j := by linarith
 
   by_cases h : k < M i j
   · have : k < (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length := by
@@ -400,11 +399,57 @@ lemma nReflectionOccurrences_even_braidWord (t : T cs) :
     linarith
     simp[m_le_two_m, h_k_le]
 
+theorem List.count_concat_of_ne {α : Type u_1} [BEq α] [LawfulBEq α] {a b : α} (h : a ≠ b) (l : List α) :
+  List.count a (l.concat (b)) = List.count a l := by
+  simp[h]
 
+theorem List.count_concat' {α : Type u_1} [BEq α] [LawfulBEq α] [DecidableEq α] {a b : α} (l : List α) :
+  List.count a (l.concat b) = List.count a l + if a = b then 1 else 0 := by
+  by_cases h : a = b
+  · rw[h]
+    rw[List.count_concat_self b l]
+    simp
+  · rw[List.count_concat_of_ne h l]
+    rw[if_neg h]
+    ring
+
+lemma funComp_permgjagja (p : ℕ) (t : T cs) (z : ZMod 2) :
+  (funComp (permutationMap cs j ∘ permutationMap cs i) p ⟨t, z⟩) =
+  ⟨
+    ⟨π (alternatingWord j i (2 * p)) * t.1 * (π (alternatingWord j i (2 * p)))⁻¹,
+    IsReflection.conj t.2 (π (alternatingWord j i (2 * p)))⟩,
+     z + parityReflectionOccurrences cs (alternatingWord j i (2 * p)) t
+  ⟩ := by
+  induction p with
+  | zero =>
+    simp[funComp, permutationMap, alternatingWord, parityReflectionOccurrences, nReflectionOccurrences]
+  | succ p h =>
+    simp[funComp]
+    rw[h]
+    simp[permutationMap]
+
+    have : 2 * (p + 1) = 2 * p + 1 + 1 := by ring
+
+    constructor
+    · simp[conj]
+      rw[this]
+      rw[alternatingWord_succ']
+      rw[wordProd_cons]
+      rw[alternatingWord_succ']
+      simp[wordProd_cons]
+      simp[mul_assoc]
+    · nth_rewrite 2 [parityReflectionOccurrences]
+      simp[nu]
+      rw[nReflectionOccurrences]
+      rw[this]
+      rw[alternatingWord_succ]
+      rw[leftInvSeq_concat]
+      rw[List.count_concat t.1 (cs.leftInvSeq (alternatingWord i j (2 * p + 1)))]
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let p := M i j
-
+  funext ⟨t, z⟩
+  simp
 
 
 def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
