@@ -1,5 +1,6 @@
 import Mathlib.GroupTheory.Coxeter.Inversion
 import Mathlib.Algebra.Group.NatPowAssoc
+import Init.Data.List.Lemmas
 
 open CoxeterSystem
 
@@ -11,14 +12,13 @@ local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "ℓ" => cs.length
 
-def nReflectionOccurrences (cs : CoxeterSystem M W) (w : List B) (t : W) : ℕ :=
-  (cs.leftInvSeq w).count t
-
-def parityReflectionOccurrences (w : List B) (t : W) : ZMod 2 :=
-  (nReflectionOccurrences cs w t : ZMod 2)
-
-
 def T : Type := {t : W // IsReflection cs t}
+
+def nReflectionOccurrences (cs : CoxeterSystem M W) (w : List B) (t : T cs) : ℕ :=
+  (cs.leftInvSeq w).count t.1
+
+def parityReflectionOccurrences (w : List B) (t : T cs) : ZMod 2 :=
+  (nReflectionOccurrences cs w t : ZMod 2)
 
 def conj (t : T cs) (w : W) : T cs :=
   ⟨w * t.1 * w⁻¹, IsReflection.conj t.2 w⟩
@@ -305,6 +305,11 @@ theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k
     rw[wordProd_concat]
     simp[mul_assoc]
 
+theorem alternatingWord_of_getElem_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
+  (leftInvSeq cs (alternatingWord i j (2 * p)))[k]'(by simp; linarith) = π alternatingWord j i (2 * k + 1)  := by
+  rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * p))) ⟨k, by simp; linarith⟩]
+  exact alternatingWord_of_get_leftInvSeq_alternatingWord cs i j p k h
+
 lemma leftInvSeq_repeats : ∀ (k : ℕ) (h : k < M i j),
 (cs.leftInvSeq (alternatingWord i j (2 * M i j))).get ⟨M i j + k, (by simp[h]; linarith)⟩   =
 (cs.leftInvSeq (alternatingWord i j (2 * M i j))).get ⟨k, (by simp[h]; linarith)⟩ := by
@@ -336,6 +341,64 @@ lemma leftInvSeq_repeats : ∀ (k : ℕ) (h : k < M i j),
   simp
   linarith
   linarith
+
+lemma leftInvSeq_repeats' : ∀ (k : ℕ) (h : k < M i j),
+(cs.leftInvSeq (alternatingWord i j (2 * M i j)))[M i j + k]'(by simp[h]; linarith) =
+(cs.leftInvSeq (alternatingWord i j (2 * M i j)))[k]'(by simp[h]; linarith) := by
+  intro k h'
+  rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * M i j))) ⟨M i j + k, by simp[h']; linarith⟩]
+  rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * M i j))) ⟨k, by simp[h']; linarith⟩]
+  exact leftInvSeq_repeats cs k h'
+
+lemma nReflectionOccurrences_even_braidWord (t : T cs) :
+  Even (nReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t) := by
+
+  have : (nReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t) = 2 * List.count (t.1) (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (M.M i j * 2)))) := by
+    simp[nReflectionOccurrences]
+    suffices (cs.leftInvSeq (alternatingWord i j (2 * M i j))) = (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) ++ (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) from by
+      rw[this]
+      simp
+      ring
+
+    have length_eq : (cs.leftInvSeq (alternatingWord i j (2 * (M i j)))).length =
+     (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j))) ++ (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j))))).length := by
+      simp
+      ring
+
+    apply List.ext_getElem length_eq
+    intro k hk hk'
+
+    have m_le_two_m : M i j ≤ 2 * M i j := by linarith
+
+    by_cases h : k < M i j
+    · have : k < (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length := by
+        simp[h, m_le_two_m]
+
+      rw[List.getElem_append_left (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) this]
+      rw[List.getElem_take']
+    · have h_k_le : k - M i j < M i j := by
+        simp at hk
+        apply Nat.sub_lt_left_of_lt_add
+        simp at h
+        exact h
+        linarith
+      have : ¬ k < (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length := by
+        simp[h, m_le_two_m]
+      rw[List.getElem_append_right (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) this]
+      rw[List.getElem_take']
+      simp[m_le_two_m]
+
+      rw[← leftInvSeq_repeats' cs (k - M i j) h_k_le]
+
+      suffices M.M i j + (k - M.M i j) = k from by
+        simp[this]
+
+      rw[← Nat.add_sub_assoc]
+      simp
+      linarith
+      simp[m_le_two_m, h_k_le]
+  
+
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let p := M i j
