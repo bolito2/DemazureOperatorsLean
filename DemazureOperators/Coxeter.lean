@@ -403,12 +403,17 @@ theorem List.count_concat_of_ne {α : Type u_1} [BEq α] [LawfulBEq α] {a b : �
   List.count a (l.concat (b)) = List.count a l := by
   simp[h]
 
-theorem List.count_concat' {α : Type u_1} [BEq α] [LawfulBEq α] [DecidableEq α] (a b : α) (l : List α) :
-  List.count a (l.concat b) = List.count a l + if a = b then 1 else 0 := by
-  by_cases h : a = b
-  · rw[h]
-    rw[List.count_concat_self b l]
-    simp
+lemma alternatingWord_reverse : (alternatingWord i j (2 * p)).reverse = alternatingWord j i (2 * p) := by
+  induction p with
+  | zero =>
+    simp[alternatingWord]
+  | succ p h =>
+    simp [alternatingWord]
+    rw[h]
+    have h1 : j :: i :: alternatingWord j i (2 * p) = alternatingWord j i (2 * p + 1 + 1) := by
+      rw[alternatingWord_succ']
+      rw[alternatingWord_succ']
+      simp
   · rw[List.count_concat_of_ne h l]
     rw[if_neg h]
     ring
