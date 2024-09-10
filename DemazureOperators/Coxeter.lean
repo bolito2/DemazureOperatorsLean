@@ -446,26 +446,11 @@ def permutationMap_ofList (l : List B) : T cs × ZMod 2 → T cs × ZMod 2 :=
   | [] => id
   | a :: t => permutationMap cs a * permutationMap_ofList t
 
-lemma permutationMap_ofList_concat (l : List B) (a : B) :
-  permutationMap_ofList cs (l.concat a) = permutationMap_ofList cs l * permutationMap cs a := by
-  induction l with
-  | nil =>
-    simp[permutationMap_ofList, permutationMap, mulDef]
-  | cons a' l' h =>
-    rw[List.concat_cons]
-    rw[permutationMap_ofList, permutationMap_ofList]
-    rw[h]
-    simp[mul_assoc]
-
 lemma IsReflection.conj' (ht : cs.IsReflection t) (w : W) :
   cs.IsReflection (w⁻¹ * t * w) := by
   have : w = w⁻¹⁻¹ := by simp
   nth_rewrite 2 [this]
   apply IsReflection.conj ht w⁻¹
-
-lemma nReflectionOccurrences_concat (l : List B) (i : B) (t : T cs) :
-  parityReflectionOccurrences cs (l.concat i) t = parityReflectionOccurrences cs l t + nu cs i  := by
-  sorry
 
 lemma permutationMap_ofList_mk_1 (l : List B) : (permutationMap_ofList cs l ⟨t,z⟩).1 =
   ⟨(cs.wordProd l) * t.1 * (cs.wordProd l)⁻¹, IsReflection.conj t.2 (cs.wordProd l)⟩ := by
@@ -479,16 +464,6 @@ lemma permutationMap_ofList_mk_1 (l : List B) : (permutationMap_ofList cs l ⟨t
     simp[permutationMap, conj, h]
     simp[cs.wordProd_cons]
     simp[mul_assoc]
-
-namespace List
-  theorem dropLast_concat_getLast : ∀ {l : List α} (h : l ≠ []), dropLast l ++ [getLast l h] = l
-    | [], h => absurd rfl h
-    | [a], h => rfl
-    | a :: b :: l, h => by
-      rw [dropLast_cons₂, cons_append, getLast_cons (cons_ne_nil _ _)]
-      congr
-      exact dropLast_concat_getLast (cons_ne_nil b l)
-end List
 
 lemma permutationMap_ofList_mk_2 (l : List B) :
  (permutationMap_ofList cs l ⟨t,z⟩).2 = z + parityReflectionOccurrences cs l.reverse t := by
@@ -522,39 +497,6 @@ lemma permutationMap_ofList_mk (l : List B) (t : T cs) (z : ZMod 2) :
    z + parityReflectionOccurrences cs l.reverse t⟩ := by
   rw[← permutationMap_ofList_mk_1, ← permutationMap_ofList_mk_2]
 
-lemma funComp_permgjagja (p : ℕ) (t : T cs) (z : ZMod 2) :
-  (funComp (permutationMap cs j ∘ permutationMap cs i) p ⟨t, z⟩) =
-  ⟨
-    ⟨π (alternatingWord j i (2 * p)) * t.1 * (π (alternatingWord j i (2 * p)))⁻¹,
-    IsReflection.conj t.2 (π (alternatingWord j i (2 * p)))⟩,
-     z + parityReflectionOccurrences cs (alternatingWord j i (2 * p)) t
-  ⟩ := by
-  induction p with
-  | zero =>
-    simp[funComp, permutationMap, alternatingWord, parityReflectionOccurrences, nReflectionOccurrences]
-  | succ p h =>
-    simp[funComp]
-    rw[h]
-    simp[permutationMap]
-
-    have : 2 * (p + 1) = 2 * p + 1 + 1 := by ring
-
-    constructor
-    · simp[conj]
-      rw[this]
-      rw[alternatingWord_succ']
-      rw[wordProd_cons]
-      rw[alternatingWord_succ']
-      simp[wordProd_cons]
-      simp[mul_assoc]
-    · nth_rewrite 2 [parityReflectionOccurrences]
-      simp[nu]
-      rw[nReflectionOccurrences]
-      rw[this]
-      rw[alternatingWord_succ]
-      rw[leftInvSeq_concat]
-      rw[List.count_concat' t.1 (cs.wordProd (alternatingWord i j (2 * p + 1)) * cs.simple i *
-            (cs.wordProd (alternatingWord i j (2 * p + 1)))⁻¹) (cs.leftInvSeq (alternatingWord i j (2 * p + 1)))]
 
 
 
