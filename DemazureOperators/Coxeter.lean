@@ -399,9 +399,12 @@ lemma nReflectionOccurrences_even_braidWord (t : T cs) :
     linarith
     simp[m_le_two_m, h_k_le]
 
-theorem List.count_concat_of_ne {α : Type u_1} [BEq α] [LawfulBEq α] {a b : α} (h : a ≠ b) (l : List α) :
-  List.count a (l.concat (b)) = List.count a l := by
-  simp[h]
+lemma parityReflectionOccurrences_braidWord (t : T cs) :
+  parityReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t = 0 := by
+  suffices Even (nReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t) from by
+    simp[this, parityReflectionOccurrences]
+    apply ZMod.eq_zero_iff_even.mpr this
+  exact nReflectionOccurrences_even_braidWord cs t
 
 lemma alternatingWord_reverse : (alternatingWord i j (2 * p)).reverse = alternatingWord j i (2 * p) := by
   induction p with
