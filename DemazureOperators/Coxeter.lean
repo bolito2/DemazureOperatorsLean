@@ -417,9 +417,7 @@ lemma alternatingWord_reverse : (alternatingWord i j (2 * p)).reverse = alternat
       rw[alternatingWord_succ']
       rw[alternatingWord_succ']
       simp
-  · rw[List.count_concat_of_ne h l]
-    rw[if_neg h]
-    ring
+    simp[h1, alternatingWord]
 
 instance instMul : Mul (T cs × ZMod 2 → T cs × ZMod 2) where
   mul := fun f g => f ∘ g
@@ -505,8 +503,38 @@ lemma permutationMap_ofList_mk (l : List B) (t : T cs) (z : ZMod 2) :
    z + parityReflectionOccurrences cs l.reverse t⟩ := by
   rw[← permutationMap_ofList_mk_1, ← permutationMap_ofList_mk_2]
 
+theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
+  intro i j
 
+  have h (p : ℕ) : (permutationMap cs i * permutationMap cs j) ^ p = permutationMap_ofList cs (alternatingWord i j (2 * p)) := by
+    induction p with
+    | zero =>
+      simp[permutationMap_ofList, permutationMap, permutationMap_orderTwo]
+      rfl
+    | succ p h =>
+      simp[pow_succ']
+      rw[h]
+      have : 2 * (p + 1) = 2 * p + 1 + 1 := by ring
+      rw[this]
+      rw[alternatingWord_succ']
+      rw [if_neg (Nat.not_even_bit1 p)]
+      rw[permutationMap_ofList]
 
+      rw[alternatingWord_succ']
+      rw [if_pos (even_two_mul p)]
+      rw[permutationMap_ofList]
+      simp[mul_assoc]
+
+  rw[h (M i j)]
+  funext ⟨t, z⟩
+  convert_to permutationMap_ofList cs (alternatingWord i j (2 * M.M i j)) (t, z) = ⟨t,z⟩
+
+  simp[permutationMap_ofList_mk]
+  constructor
+  · simp[cs.prod_alternatingWord_eq_mul_pow]
+  · rw[alternatingWord_reverse]
+    rw[M.symmetric]
+    exact parityReflectionOccurrences_braidWord cs t
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let p := M i j
