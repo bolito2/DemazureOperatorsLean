@@ -403,7 +403,7 @@ theorem List.count_concat_of_ne {α : Type u_1} [BEq α] [LawfulBEq α] {a b : �
   List.count a (l.concat (b)) = List.count a l := by
   simp[h]
 
-theorem List.count_concat' {α : Type u_1} [BEq α] [LawfulBEq α] [DecidableEq α] {a b : α} (l : List α) :
+theorem List.count_concat' {α : Type u_1} [BEq α] [LawfulBEq α] [DecidableEq α] (a b : α) (l : List α) :
   List.count a (l.concat b) = List.count a l + if a = b then 1 else 0 := by
   by_cases h : a = b
   · rw[h]
@@ -413,6 +413,66 @@ theorem List.count_concat' {α : Type u_1} [BEq α] [LawfulBEq α] [DecidableEq 
     rw[if_neg h]
     ring
 
+instance instMul : Mul (T cs × ZMod 2 → T cs × ZMod 2) where
+  mul := fun f g => f ∘ g
+
+lemma mulDef (f g : T cs × ZMod 2 → T cs × ZMod 2) : f * g = f ∘ g := rfl
+
+instance : Monoid (T cs × ZMod 2 → T cs × ZMod 2) where
+  one := id
+  mul := (instMul cs).mul
+  one_mul := by
+    intro f
+    funext x
+    suffices (id ∘ f) x = f x from by
+      rw[← this]
+      rfl
+    simp
+  mul_one := by
+    intro f
+    funext x
+    suffices (f ∘ id) x = f x from by
+      rw[← this]
+      rfl
+    simp
+  mul_assoc := by
+    intro f g h
+    funext x
+    repeat rw[mulDef]
+    rfl
+
+def permutationMap_ofList (l : List B) : T cs × ZMod 2 → T cs × ZMod 2 :=
+  match l with
+  | [] => id
+  | a :: t => permutationMap cs a * permutationMap_ofList t
+
+lemma IsReflection.conj' (ht : cs.IsReflection t) (w : W) :
+  cs.IsReflection (w⁻¹ * t * w) := by
+  have : w = w⁻¹⁻¹ := by simp
+  nth_rewrite 2 [this]
+  apply IsReflection.conj ht w⁻¹
+
+lemma nReflectionOccurrences_mk (l : List B) (t : T cs) :
+  nReflectionOccurrences cs l t = List.sum (List.map (fun i => nu cs i t) l) := by
+
+
+lemma permutationMap_ofList_mk_1 (l : List B) : permutationMap_ofList cs l ⟨t,z⟩ =
+  ⟨⟨(cs.wordProd l) * t.1 * (cs.wordProd l)⁻¹, IsReflection.conj t.2 (cs.wordProd l)⟩,
+   z + nReflectionOccurrences cs l t⟩ := by
+  induction l with
+  | nil =>
+    simp[permutationMap_ofList, permutationMap, nReflectionOccurrences]
+  | cons a l h =>
+    calc permutationMap_ofList cs (a :: l) (t, z) = (permutationMap cs a * permutationMap_ofList cs l) (t, z) := by simp[permutationMap_ofList]
+      _ = permutationMap cs a (permutationMap_ofList cs l (t, z)) := by rfl
+      _ = permutationMap cs a ⟨⟨(cs.wordProd l) * t.1 * (cs.wordProd l)⁻¹, IsReflection.conj t.2 (cs.wordProd l)⟩, z + nReflectionOccurrences cs l t⟩ := by rw[h]
+
+    simp[permutationMap, conj]
+    constructor
+    · simp[cs.wordProd_cons]
+      simp[mul_assoc]
+    · simp[nReflectionOccurrences]
+      simp[leftInvSeq]
 lemma funComp_permgjagja (p : ℕ) (t : T cs) (z : ZMod 2) :
   (funComp (permutationMap cs j ∘ permutationMap cs i) p ⟨t, z⟩) =
   ⟨
@@ -444,7 +504,10 @@ lemma funComp_permgjagja (p : ℕ) (t : T cs) (z : ZMod 2) :
       rw[this]
       rw[alternatingWord_succ]
       rw[leftInvSeq_concat]
-      rw[List.count_concat t.1 (cs.leftInvSeq (alternatingWord i j (2 * p + 1)))]
+      rw[List.count_concat' t.1 (cs.wordProd (alternatingWord i j (2 * p + 1)) * cs.simple i *
+            (cs.wordProd (alternatingWord i j (2 * p + 1)))⁻¹) (cs.leftInvSeq (alternatingWord i j (2 * p + 1)))]
+
+
 
 theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
   let p := M i j
