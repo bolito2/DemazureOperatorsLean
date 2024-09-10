@@ -469,6 +469,19 @@ lemma permutationMap_ofList_mk_1 (l : List B) : (permutationMap_ofList cs l ⟨t
     simp[cs.wordProd_cons]
     simp[mul_assoc]
 
+lemma permutationMap_ofList_mk_2 (p : ℕ) : ∀ (l : List B) (h : l.length = p),
+ (permutationMap_ofList cs l ⟨t,z⟩).2 = z + parityReflectionOccurrences cs l t := by
+  induction p with
+  | zero =>
+    intro l h
+    have : l = [] := List.length_eq_zero.mp h
+    simp[permutationMap_ofList, permutationMap, parityReflectionOccurrences, nReflectionOccurrences, this]
+  | succ p hi =>
+    intro l h
+
+
+
+
 lemma funComp_permgjagja (p : ℕ) (t : T cs) (z : ZMod 2) :
   (funComp (permutationMap cs j ∘ permutationMap cs i) p ⟨t, z⟩) =
   ⟨
