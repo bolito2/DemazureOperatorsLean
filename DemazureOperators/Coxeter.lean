@@ -639,6 +639,13 @@ lemma isLeftInversion_of_parityReflectionOccurrences_eq_one (l : List B) (t : T 
   exact u_reduced
   exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs u t h'
 
+lemma isLeftInversion_of_parityReflectionOccurrences_lift_eq_one (w : W) (t : T cs) :
+  parityReflectionOccurrences_lift cs w t = 1 → cs.IsLeftInversion w t.1 := by
+  intro h
+  obtain ⟨l, _, rfl⟩ := cs.exists_reduced_word' w
+  simp[parityReflectionOccurrences_lift_mk] at h
+  apply isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t h
+
 lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T cs) :
   cs.IsLeftInversion (cs.wordProd l) t.1 ↔ parityReflectionOccurrences cs l t = 1 := by
   constructor
