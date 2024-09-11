@@ -570,17 +570,6 @@ theorem parityReflectionOccurrences_ext (l l' : List B) (t : T cs) (h : π l = �
   apply permutationMap_ext cs l.reverse l'.reverse t 0
   simp[h]
 
-lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : T cs) (ht : IsReflection cs t.1) :
-  cs.IsLeftInversion (cs.wordProd w) t.1 ↔ parityReflectionOccurrences cs w t = 1 := by
-  constructor
-  · sorry
-  · intro h
-    rcases cs.exists_reduced_word (π w) with ⟨u, u_reduced, hu⟩
-    rw [hu]
-    rw [← permutationMap_comp]
-    simp [permutationMap]
-    sorry
-
 lemma odd_iff_parity_eq_one (n : ℕ) : Odd n ↔ (n : ZMod 2) = 1 := by
   simp [ZMod.eq_one_iff_odd]
 
@@ -591,12 +580,38 @@ lemma gt_one_of_odd (n : ℕ) : Odd n → n > 0 := by
   suffices m ≥ 0 from by linarith
   exact Nat.zero_le m
 
-theorem strongExchangeProperty (w : List B) (t : W) (h : IsReflection cs t)
- (h' : cs.IsLeftInversion (cs.wordProd w) t) :
-  ∃ (i : Fin w.length), t * π w = π (w.eraseIdx i) := by
+lemma isInLeftInvSeq_of_parityReflectionOccurrences_eq_one (w : List B) (t : T cs) (h : parityReflectionOccurrences cs w t = 1) :
+  t.1 ∈ cs.leftInvSeq w := by
+  simp [parityReflectionOccurrences] at h
+  rw [← @odd_iff_parity_eq_one (nReflectionOccurrences cs w t)] at h
 
-  suffices t ∈ cs.leftInvSeq w from by
-    have : ∃ (i : Fin (cs.leftInvSeq w).length), (cs.leftInvSeq w).get i = t := List.get_of_mem this
+  apply gt_one_of_odd (nReflectionOccurrences cs w t) at h
+  simp[nReflectionOccurrences] at h
+
+  exact h
+
+lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (l : List B) (t : T cs) (ht : IsReflection cs t.1) :
+  cs.IsLeftInversion (cs.wordProd l) t.1 ↔ parityReflectionOccurrences cs l t = 1 := by
+  constructor
+  · sorry
+  · intro h
+    rcases cs.exists_reduced_word (π l) with ⟨u, u_reduced, hu⟩
+    rw [hu]
+    have h' : parityReflectionOccurrences cs u t = 1 := by
+      rw[← h]
+      rw [← parityReflectionOccurrences_ext cs u l t]
+      simp[hu]
+
+    rw [← permutationMap_comp]
+    simp [permutationMap]
+    sorry
+
+theorem strongExchangeProperty (w : List B) (t : T cs) (h : IsReflection cs t.1)
+ (h' : cs.IsLeftInversion (cs.wordProd w) t.1) :
+  ∃ (i : Fin w.length), t.1 * π w = π (w.eraseIdx i) := by
+
+  suffices t.1 ∈ cs.leftInvSeq w from by
+    have : ∃ (i : Fin (cs.leftInvSeq w).length), (cs.leftInvSeq w).get i = t.1 := List.get_of_mem this
 
     rcases this with ⟨i, hi⟩
     use ⟨i, by rw[← length_leftInvSeq cs w] ; exact i.2⟩
@@ -609,10 +624,4 @@ theorem strongExchangeProperty (w : List B) (t : W) (h : IsReflection cs t)
 
 
   rw [isLeftInversion_iff_nReflectionOccurrences_eq_one cs w t h] at h'
-  simp [parityReflectionOccurrences] at h'
-  rw [← @odd_iff_parity_eq_one (nReflectionOccurrences cs w t)] at h'
-
-  apply gt_one_of_odd (nReflectionOccurrences cs w t) at h'
-  simp[nReflectionOccurrences] at h'
-
-  exact h'
+  exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs w t h'
