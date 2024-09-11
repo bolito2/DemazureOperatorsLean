@@ -590,6 +590,18 @@ lemma isInLeftInvSeq_of_parityReflectionOccurrences_eq_one (w : List B) (t : T c
 
   exact h
 
+lemma eraseIdx_of_mul_leftInvSeq (w : List B) (t : T cs) (h : t.1 ∈ cs.leftInvSeq w) :
+  ∃ (i : Fin w.length), t.1 * π w = π (w.eraseIdx i) := by
+    have : ∃ (i : Fin (cs.leftInvSeq w).length), (cs.leftInvSeq w).get i = t.1 := List.get_of_mem h
+    rcases this with ⟨i, hi⟩
+    use ⟨i, by rw[← length_leftInvSeq cs w] ; exact i.2⟩
+    rw[← hi]
+    rw[← getD_leftInvSeq_mul_wordProd cs w i]
+    simp
+    rw[← List.get?_eq_getElem?]
+    rw [List.get?_eq_get i.2]
+    simp
+
 lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (l : List B) (t : T cs) (ht : IsReflection cs t.1) :
   cs.IsLeftInversion (cs.wordProd l) t.1 ↔ parityReflectionOccurrences cs l t = 1 := by
   constructor
@@ -606,22 +618,12 @@ lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (l : List B) (t : T cs) 
     simp [permutationMap]
     sorry
 
+
 theorem strongExchangeProperty (w : List B) (t : T cs) (h : IsReflection cs t.1)
  (h' : cs.IsLeftInversion (cs.wordProd w) t.1) :
   ∃ (i : Fin w.length), t.1 * π w = π (w.eraseIdx i) := by
 
-  suffices t.1 ∈ cs.leftInvSeq w from by
-    have : ∃ (i : Fin (cs.leftInvSeq w).length), (cs.leftInvSeq w).get i = t.1 := List.get_of_mem this
-
-    rcases this with ⟨i, hi⟩
-    use ⟨i, by rw[← length_leftInvSeq cs w] ; exact i.2⟩
-    rw[← hi]
-    rw[← getD_leftInvSeq_mul_wordProd cs w i]
-    simp
-    rw[← List.get?_eq_getElem?]
-    rw [List.get?_eq_get i.2]
-    simp
-
+  suffices t.1 ∈ cs.leftInvSeq w from eraseIdx_of_mul_leftInvSeq cs w t this
 
   rw [isLeftInversion_iff_nReflectionOccurrences_eq_one cs w t h] at h'
   exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs w t h'
