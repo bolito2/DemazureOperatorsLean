@@ -536,16 +536,6 @@ theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
     rw[M.symmetric]
     exact parityReflectionOccurrences_braidWord cs t
 
-theorem wah (i j : B) (h : M i j > 0) : funComp (permutationMap cs i ∘ permutationMap cs j) (M i j) = id := by
-  let p := M i j
-  funext ⟨t, z⟩
-  simp
-
-
-def permutationMap_comp (w u : List B) : permutationMap cs (w ++ u) = permutationMap cs w ∘ permutationMap cs u := by
-  funext
-  simp [permutationMap]
-  sorry
 
 lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : W) (h : IsReflection cs t) :
   cs.IsLeftInversion (cs.wordProd w) t ↔ parityReflectionOccurrences cs w t = 1 := by
