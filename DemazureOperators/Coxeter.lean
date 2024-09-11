@@ -607,16 +607,17 @@ lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (l : List B) (t : T cs) 
   constructor
   · sorry
   · intro h
-    rcases cs.exists_reduced_word (π l) with ⟨u, u_reduced, hu⟩
+    rcases cs.exists_reduced_word' (π l) with ⟨u, u_reduced, hu⟩
     rw [hu]
     have h' : parityReflectionOccurrences cs u t = 1 := by
       rw[← h]
       rw [← parityReflectionOccurrences_ext cs u l t]
       simp[hu]
 
-    rw [← permutationMap_comp]
-    simp [permutationMap]
-    sorry
+    apply isLeftInversion_of_mem_leftInvSeq
+    exact u_reduced
+    exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs u t h'
+
 
 
 theorem strongExchangeProperty (w : List B) (t : T cs) (h : IsReflection cs t.1)
