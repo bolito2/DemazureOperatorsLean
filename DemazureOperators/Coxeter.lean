@@ -536,13 +536,29 @@ theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
     rw[M.symmetric]
     exact parityReflectionOccurrences_braidWord cs t
 
+def permutationMap_lift : W →* T cs × ZMod 2 → T cs × ZMod 2 :=
+  cs.lift ⟨permutationMap cs, permutationMap_isLiftable cs⟩
 
-lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : W) (h : IsReflection cs t) :
-  cs.IsLeftInversion (cs.wordProd w) t ↔ parityReflectionOccurrences cs w t = 1 := by
+theorem permutationMap_lift_mk (l : List B) (t : T cs) (z : ZMod 2) :
+  permutationMap_lift cs (cs.wordProd l) ⟨t,z⟩ = permutationMap_ofList cs l ⟨t,z⟩ := by
+  induction l with
+  | nil =>
+    simp[permutationMap_lift, cs.wordProd_nil, permutationMap_ofList]
+    rfl
+  | cons i l h =>
+    rw[cs.wordProd_cons]
+    rw[permutationMap_ofList]
+    simp[mulDef]
+    rw[← h]
+    simp[permutationMap_lift]
+    
+lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : T cs) (ht : IsReflection cs t.1) :
+  cs.IsLeftInversion (cs.wordProd w) t.1 ↔ parityReflectionOccurrences cs w t = 1 := by
   constructor
   · sorry
-  · rcases cs.exists_reduced_word (π w) with ⟨u, u_reduced, hu⟩
-    rw [← hu]
+  · intro h
+    rcases cs.exists_reduced_word (π w) with ⟨u, u_reduced, hu⟩
+    rw [hu]
     rw [← permutationMap_comp]
     simp [permutationMap]
     sorry
