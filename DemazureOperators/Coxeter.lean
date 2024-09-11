@@ -2,6 +2,8 @@ import Mathlib.GroupTheory.Coxeter.Inversion
 import Mathlib.Algebra.Group.NatPowAssoc
 import Init.Data.List.Lemmas
 
+set_option linter.unusedSectionVars false
+
 open CoxeterSystem
 
 variable {B : Type}
@@ -709,7 +711,7 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
     suffices cs.IsLeftInversion (t.1 * π l) t.1 from by
       simp[IsLeftInversion] at this
       rw[← mul_assoc] at this
-      rcases this with ⟨t_refl, ht⟩
+      rcases this with ⟨_, ht⟩
       rw[IsReflection.mul_self t.2] at ht
       simp at ht
       simp[IsLeftInversion] at h
@@ -737,8 +739,7 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
   · exact isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t
 
 
-
-theorem strongExchangeProperty (w : List B) (t : T cs) (h : IsReflection cs t.1)
+theorem strongExchangeProperty (w : List B) (t : T cs)
  (h' : cs.IsLeftInversion (cs.wordProd w) t.1) :
   ∃ (i : Fin w.length), t.1 * π w = π (w.eraseIdx i) := by
 
