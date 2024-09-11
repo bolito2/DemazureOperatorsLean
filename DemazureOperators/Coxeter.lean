@@ -551,7 +551,25 @@ theorem permutationMap_lift_mk (l : List B) (t : T cs) (z : ZMod 2) :
     simp[mulDef]
     rw[← h]
     simp[permutationMap_lift]
-    
+
+theorem permutationMap_ext (l l' : List B) (t : T cs) (z : ZMod 2) (h : π l = π l') :
+  permutationMap_ofList cs l ⟨t,z⟩ = permutationMap_ofList cs l' ⟨t,z⟩ := by
+  rw[← permutationMap_lift_mk]
+  rw[← permutationMap_lift_mk]
+  simp[h]
+
+theorem parityReflectionOccurrences_ext (l l' : List B) (t : T cs) (h : π l = π l') :
+  parityReflectionOccurrences cs l t = parityReflectionOccurrences cs l' t := by
+
+  suffices permutationMap_ofList cs l.reverse ⟨t,0⟩ = permutationMap_ofList cs l'.reverse ⟨t,0⟩ from by
+    rw[permutationMap_ofList_mk cs l.reverse t 0] at this
+    rw[permutationMap_ofList_mk cs l'.reverse t 0] at this
+    simp at this
+    exact this.2
+
+  apply permutationMap_ext cs l.reverse l'.reverse t 0
+  simp[h]
+
 lemma isLeftInversion_iff_nReflectionOccurrences_eq_one (w : List B) (t : T cs) (ht : IsReflection cs t.1) :
   cs.IsLeftInversion (cs.wordProd w) t.1 ↔ parityReflectionOccurrences cs w t = 1 := by
   constructor
