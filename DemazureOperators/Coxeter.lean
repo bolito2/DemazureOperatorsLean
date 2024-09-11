@@ -650,9 +650,13 @@ lemma permutationMap_lift_simple (p : B):
   permutationMap_lift cs (cs.simple p) = permutationMap cs p := by
   simp[permutationMap_lift]
 
-lemma permutationMap_lift_of_reflection_mk (l : List B) (p : B) : ∀ (z : ZMod 2),
-  permutationMap_lift cs (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) ⟨⟨cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹, IsReflection.conj (isReflection_simple cs p) (cs.wordProd l)⟩, z⟩  =
-  ⟨⟨cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹, IsReflection.conj (isReflection_simple cs p) (cs.wordProd l)⟩, z + 1⟩ := by
+lemma permutationMap_lift_of_reflection (t : T cs) : ∀ (z : ZMod 2),
+  permutationMap_lift cs t.1 (t, z) = ⟨t, z + 1⟩ := by
+  rcases t with ⟨t, t_refl⟩
+  rcases t_refl with ⟨w, p, rfl⟩
+  obtain ⟨l, _, rfl⟩ := cs.wordProd_surjective w
+  have : IsReflection cs (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) := IsReflection.conj (isReflection_simple cs p) (cs.wordProd l)
+
   induction l with
   | nil =>
     simp[permutationMap_lift, permutationMap_ofList, permutationMap, nReflectionOccurrences, conj, nu]
@@ -671,7 +675,7 @@ lemma permutationMap_lift_of_reflection_mk (l : List B) (p : B) : ∀ (z : ZMod 
       convert_to IsReflection cs (cs.simple i * (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) * (cs.simple i)⁻¹)
       simp[inv_simple, mul_assoc]
       exact IsReflection.conj this (s i)
-    rw[h (z + nu cs i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
+    rw[h (isReflection_simple cs p) (z + nu cs i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
     simp[permutationMap, conj]
     constructor
     · simp[mul_assoc]
@@ -689,23 +693,6 @@ lemma permutationMap_lift_of_reflection_mk (l : List B) (p : B) : ∀ (z : ZMod 
         by_contra h''
         rw[h''] at h'
         simp[mul_assoc] at h'
-
-lemma permutationMap_lift_of_reflection (t : T cs) (z : ZMod 2) :
-  permutationMap_lift cs t.1 (t, z) = ⟨t, z + 1⟩ := by
-  rcases t.2 with ⟨w, p, ht⟩
-  obtain ⟨l, _, rfl⟩ := cs.wordProd_surjective w
-  have : IsReflection cs (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) := IsReflection.conj (isReflection_simple cs p) (cs.wordProd l)
-
-  induction l with
-  | nil =>
-    simp[permutationMap_lift, permutationMap_ofList, permutationMap, nReflectionOccurrences, conj, nu]
-  | cons i l h =>
-    simp_rw[wordProd_cons cs i l]
-    rw[mul_inv_rev]
-    simp_rw[inv_simple]
-
-
-
 
 lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T cs) :
   cs.IsLeftInversion (cs.wordProd l) t.1 ↔ parityReflectionOccurrences cs l t = 1 := by
