@@ -569,6 +569,15 @@ theorem parityReflectionOccurrences_lift_mk (l : List B) (t : T cs) :
   rw[permutationMap_ofList_mk cs l.reverse t 0]
   simp
 
+theorem permutationMap_lift_mk (w : W) (t : T cs) (z : ZMod 2) :
+  permutationMap_lift cs w ⟨t,z⟩ = ⟨⟨w * t.1 * w⁻¹, IsReflection.conj t.2 w⟩ , z + parityReflectionOccurrences_lift cs w⁻¹ t⟩ := by
+  obtain ⟨l, _, rfl⟩ := cs.exists_reduced_word' w
+  apply Prod.ext
+  · simp[permutationMap_lift_mk_ofList, permutationMap_ofList_mk]
+  · simp[parityReflectionOccurrences_lift]
+    rw[permutationMap_lift_mk_ofList cs l t 0]
+    rw[permutationMap_lift_mk_ofList cs l t z]
+    simp[permutationMap_ofList_mk]
 
 
 theorem parityReflectionOccurrences_ext (l l' : List B) (t : T cs) (h : π l = π l') :
