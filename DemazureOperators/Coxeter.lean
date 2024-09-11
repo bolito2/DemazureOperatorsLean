@@ -716,7 +716,7 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
       linarith
 
     apply isLeftInversion_of_parityReflectionOccurrences_lift_eq_one cs (t.1 * π l) t
-    suffices permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = ⟨conj cs t (π l), 1⟩ from by
+    suffices permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = ⟨conj cs t (π l)⁻¹, 1⟩ from by
       rw[permutationMap_lift_mk cs (t.1 * π l)⁻¹ t 0] at this
       simp at this
       simp[this.2]
@@ -725,13 +725,14 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
       permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = permutationMap_lift cs (π l)⁻¹ (permutationMap_lift cs t.1 ⟨t, 0⟩) := by
           simp[IsReflection.inv t.2]
           rfl
-      _ = permutationMap_lift cs (π l)⁻¹ ⟨t, 0⟩ := by
+      _ = permutationMap_lift cs (π l)⁻¹ ⟨t, 1⟩ := by
+          rw[permutationMap_lift_of_reflection cs t 0]
           simp[permutationMap_lift_mk]
-          simp[IsReflection.inv t.2, parityReflectionOccurrences_lift_mk]
-
-
-      _ = (conj cs t (cs.wordProd l), 1) := by sorry
-
+      _ = ⟨conj cs t (π l)⁻¹, 1 + parityReflectionOccurrences_lift cs (π l) t⟩ := by
+        simp[permutationMap_lift_mk, conj]
+      _ = (conj cs t (cs.wordProd l)⁻¹, 1) := by
+        simp
+        simp[parityReflectionOccurrences_lift_mk, h'']
 
   · exact isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t
 
@@ -743,5 +744,5 @@ theorem strongExchangeProperty (w : List B) (t : T cs) (h : IsReflection cs t.1)
 
   suffices t.1 ∈ cs.leftInvSeq w from eraseIdx_of_mul_leftInvSeq cs w t this
 
-  rw [isLeftInversion_iff_nReflectionOccurrences_eq_one cs w t h] at h'
+  rw [isLeftInversion_iff_parityReflectionOccurrences_eq_one cs w t] at h'
   exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs w t h'
