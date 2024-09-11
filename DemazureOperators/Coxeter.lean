@@ -558,6 +558,19 @@ theorem permutationMap_ext (l l' : List B) (t : T cs) (z : ZMod 2) (h : π l = �
   rw[← permutationMap_lift_mk_ofList]
   simp[h]
 
+def parityReflectionOccurrences_lift (w : W) (t : T cs) : ZMod 2 :=
+  (permutationMap_lift cs w⁻¹ ⟨t,0⟩).2
+
+theorem parityReflectionOccurrences_lift_mk (l : List B) (t : T cs) :
+  parityReflectionOccurrences_lift cs (cs.wordProd l) t = parityReflectionOccurrences cs l t := by
+  rw[parityReflectionOccurrences_lift]
+  rw[← wordProd_reverse]
+  rw[permutationMap_lift_mk_ofList cs l.reverse t 0]
+  rw[permutationMap_ofList_mk cs l.reverse t 0]
+  simp
+
+
+
 theorem parityReflectionOccurrences_ext (l l' : List B) (t : T cs) (h : π l = π l') :
   parityReflectionOccurrences cs l t = parityReflectionOccurrences cs l' t := by
 
