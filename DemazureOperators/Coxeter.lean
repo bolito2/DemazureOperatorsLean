@@ -646,6 +646,20 @@ lemma isLeftInversion_of_parityReflectionOccurrences_lift_eq_one (w : W) (t : T 
   simp[parityReflectionOccurrences_lift_mk] at h
   apply isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t h
 
+lemma permutationMap_lift_of_reflection (t : T cs) (z : ZMod 2) :
+  permutationMap_lift cs t.1 (t, z) = ⟨t, z + 1⟩ := by
+  rcases t with ⟨t, t_refl⟩
+  rcases t_refl with ⟨w, p, rfl⟩
+  obtain ⟨l, _, rfl⟩ := cs.wordProd_surjective w
+  induction l with
+  | nil =>
+    simp[permutationMap_lift, permutationMap_ofList, permutationMap, nReflectionOccurrences, conj, nu]
+  | cons i l h =>
+    simp_rw[wordProd_cons cs i l]
+    
+
+
+
 lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T cs) :
   cs.IsLeftInversion (cs.wordProd l) t.1 ↔ parityReflectionOccurrences cs l t = 1 := by
   constructor
