@@ -1,25 +1,41 @@
 import DemazureOperators.Coxeter
 
-def apply_nilMove [BEq B] (l : List B) (b : B) (i : ℕ) : List B :=
-  match i with
-  | 0 => match l with
-    | [] => []
-    | [x] => [x]
-    | _ :: _ :: xs => xs
-  | i + 1 => match l with
-    | [] => []
-    | x :: xs => x :: apply_nilMove xs b i
+variable {B : Type*} [DecidableEq B]
 
-#eval apply_nilMove [1, 1, 3, 3, 5] 3 2
+structure Move where
+  pre : List B
+  post : List B
 
-def apply_alternatingWordMove [BEq B] (l : List B) (a b : B) (i m : ℕ) : List B :=
-  match i with
-  | 0 => match m with
-    | 0 => l
-    | m + 1 => match l with
-      | [] => []
-      | a :: xs => b :: apply_alternatingWordMove xs a b i m
-      | b :: xs => a :: apply_alternatingWordMove xs a b i m
-  | i + 1 => match l with
-    | [] => []
-    | x :: xs => x :: apply_alternatingWordMove xs a b i m
+def apply_move (s : Move) (l : List B) :=
+  if l.take s.pre.length = s.pre then
+    s.post ++ l.drop s.pre.length
+  else
+    l
+
+#eval apply_move {pre := [1, 2], post := [3, 4]} [1, 2, 3, 4, 5]
+
+def nil_move (i : B) : @Move B := {pre := [i, i], post := []}
+
+open CoxeterSystem
+
+variable {B : Type}  [DecidableEq B]
+variable {W : Type} [Group W] [DecidableEq W]
+variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
+
+local prefix:100 "s" => cs.simple
+local prefix:100 "π" => cs.wordProd
+local prefix:100 "ℓ" => cs.length
+
+theorem nil_move_wordProd (i : B) (l : List B) : π (apply_move (nil_move i) l) = π l := by
+  simp [apply_move, nil_move]
+  by_cases h: l.take 2 = [i, i]
+  · simp[h]
+    have h' : l = l.take 2 ++ l.drop 2 := by simp
+    nth_rewrite 2 [h']
+    rw[wordProd_append]
+    rw[h]
+    simp
+    convert_to cs.wordProd ([i] ++ [i]) = 1
+    rw[wordProd_append]
+    simp
+  · simp[h]
