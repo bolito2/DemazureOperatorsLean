@@ -5,13 +5,21 @@ variable {B : Type}  [DecidableEq B]
 variable {W : Type} [Group W] [DecidableEq W]
 variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
 
-inductive CoxeterMove (cs : CoxeterSystem M W) where
-| nil (i : B) (p : ℕ) : CoxeterMove cs
-| braid (i j : B) (p : ℕ) : CoxeterMove cs
+structure NilMove (cs : CoxeterSystem M W) where
+  i : B
+  p : ℕ
+structure BraidMove (cs : CoxeterSystem M W) where
+  i : B
+  j : B
+  p : ℕ
 
-def apply_coxeterMove (s : CoxeterMove cs) (l : List B) : List B :=
-  match s with
-  | CoxeterMove.nil i p =>
+inductive CoxeterMove (cs : CoxeterSystem M W) where
+| nil : NilMove cs → CoxeterMove cs
+| braid : BraidMove cs → CoxeterMove cs
+
+def apply_nilMove (nm : NilMove cs) (l : List B) : List B :=
+  match nm with
+  | NilMove.mk i p =>
     match p with
     | 0 =>
       if l.take 2 = [i, i] then
@@ -21,9 +29,11 @@ def apply_coxeterMove (s : CoxeterMove cs) (l : List B) : List B :=
     | p + 1 =>
       match l with
       | [] => []
-      | h::t => h :: apply_coxeterMove (CoxeterMove.nil i p) t
+      | h::t => h :: apply_nilMove (NilMove.mk i p) t
 
-  | CoxeterMove.braid i j p =>
+def apply_braidMove (bm : BraidMove cs) (l : List B) : List B :=
+  match bm with
+  | BraidMove.mk i j p =>
     match p with
     | 0 =>
       if l.take (M i j) = braidWord M i j then
@@ -33,18 +43,23 @@ def apply_coxeterMove (s : CoxeterMove cs) (l : List B) : List B :=
     | p + 1 =>
       match l with
       | [] => []
-      | h::t => h :: apply_coxeterMove (CoxeterMove.braid i j p) t
+      | h::t => h :: apply_braidMove (BraidMove.mk i j p) t
+
+def apply_coxeterMove (cm : CoxeterMove cs) (l : List B) : List B :=
+  match cm with
+  | CoxeterMove.nil nm => apply_nilMove cs nm l
+  | CoxeterMove.braid bm => apply_braidMove cs bm l
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "ℓ" => cs.length
 
-theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxeterMove cs cm l) = π l := by
-  cases cm with
-  | nil i p =>
+theorem nilMove_wordProd (nm : NilMove cs) (l : List B) : π (apply_nilMove cs nm l) = π l := by
+  match nm with
+  | NilMove.mk i p =>
     match p with
     | 0 =>
-      simp[apply_coxeterMove]
+      simp[apply_nilMove]
       by_cases h : l.take 2 = [i, i]
       · simp[h]
         have h' : l = l.take 2 ++ l.drop 2 := by simp
@@ -58,15 +73,17 @@ theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxe
       · simp[h]
     | p + 1 =>
       match l with
-      | [] => simp[apply_coxeterMove]
+      | [] => simp[apply_nilMove]
       | h::t =>
-        simp[apply_coxeterMove, wordProd_cons]
-        exact coxeterMove_wordProd (CoxeterMove.nil i p) t
+        simp[apply_nilMove, wordProd_cons]
+        exact nilMove_wordProd (NilMove.mk i p) t
 
-  | braid i j p =>
+theorem braidMove_wordProd (bm : BraidMove cs) (l : List B) : π (apply_braidMove cs bm l) = π l := by
+  match bm with
+  | BraidMove.mk i j p =>
     match p with
     | 0 =>
-      simp[apply_coxeterMove]
+      simp[apply_braidMove]
       by_cases h : List.take (M.M i j) l = braidWord M i j
       · simp[h]
         have h' : l = l.take (M.M i j) ++ l.drop (M.M i j) := by simp
@@ -76,7 +93,15 @@ theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxe
       · simp[h]
     | p + 1 =>
       match l with
-      | [] => simp[apply_coxeterMove]
+      | [] => simp[apply_braidMove]
       | h::t =>
-        simp[apply_coxeterMove, wordProd_cons]
-        exact coxeterMove_wordProd (CoxeterMove.braid i j p) t
+        simp[apply_braidMove, wordProd_cons]
+        exact braidMove_wordProd (BraidMove.mk i j p) t
+
+theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxeterMove cs cm l) = π l := by
+  cases cm with
+  | nil nm => exact nilMove_wordProd cs nm l
+  | braid bm => exact braidMove_wordProd cs bm l
+
+def apply_coxeterMove_sequence (cms : List (CoxeterMove cs)) (l : List B) : List B :=
+  cms.foldl (λ l cm => apply_coxeterMove cs cm l) l
