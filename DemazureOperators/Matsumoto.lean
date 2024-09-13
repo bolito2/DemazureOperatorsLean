@@ -105,3 +105,5 @@ theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxe
 
 def apply_coxeterMove_sequence (cms : List (CoxeterMove cs)) (l : List B) : List B :=
   cms.foldl (λ l cm => apply_coxeterMove cs cm l) l
+
+example (nm : NilMove cs) : CoxeterMove cs := CoxeterMove.nil nm
