@@ -55,33 +55,31 @@ local prefix:100 "π" => cs.wordProd
 local prefix:100 "ℓ" => cs.length
 
 theorem nilMove_wordProd (nm : NilMove cs) (l : List B) : π (apply_nilMove cs nm l) = π l := by
-  match nm with
-  | NilMove.mk i p =>
-    match p with
-    | 0 =>
-      simp[apply_nilMove]
-      by_cases h : l.take 2 = [i, i]
-      · simp[h]
-        have h' : l = l.take 2 ++ l.drop 2 := by simp
-        nth_rewrite 2 [h']
-        rw[wordProd_append]
-        rw[h]
-        simp
-        convert_to cs.wordProd ([i] ++ [i]) = 1
-        rw[wordProd_append]
-        simp
-      · simp[h]
-    | p + 1 =>
-      match l with
-      | [] => simp[apply_nilMove]
-      | h::t =>
-        simp[apply_nilMove, wordProd_cons]
-        exact nilMove_wordProd (NilMove.mk i p) t
+  rcases nm with ⟨i, p⟩
+  match p with
+  | 0 =>
+    simp[apply_nilMove]
+    by_cases h : l.take 2 = [i, i]
+    · simp[h]
+      have h' : l = l.take 2 ++ l.drop 2 := by simp
+      nth_rewrite 2 [h']
+      rw[wordProd_append]
+      rw[h]
+      simp
+      convert_to cs.wordProd ([i] ++ [i]) = 1
+      rw[wordProd_append]
+      simp
+    · simp[h]
+  | p + 1 =>
+    match l with
+    | [] => simp[apply_nilMove]
+    | h::t =>
+      simp[apply_nilMove, wordProd_cons]
+      exact nilMove_wordProd (NilMove.mk i p) t
 
 theorem braidMove_wordProd (bm : BraidMove cs) (l : List B) : π (apply_braidMove cs bm l) = π l := by
-  match bm with
-  | BraidMove.mk i j p =>
-    match p with
+  rcases bm with ⟨i, j, p⟩
+  match p with
     | 0 =>
       simp[apply_braidMove]
       by_cases h : List.take (M.M i j) l = braidWord M i j
