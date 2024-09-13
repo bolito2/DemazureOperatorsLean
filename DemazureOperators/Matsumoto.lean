@@ -51,3 +51,26 @@ theorem coxeterMove_wordProd (cm : CoxeterMove cs) (l : List B) : π (apply_coxe
       repeat rw[wordProd_append]
       rw[h]
     · simp[h]
+
+
+def apply_coxeterMove_atIndex (cm : CoxeterMove cs) (l : List B) (p : ℕ) : List B :=
+  match p with
+  | 0 => apply_coxeterMove cs cm l
+  | p + 1 => match l with
+    | [] => []
+    | h::t => h :: apply_coxeterMove_atIndex cm t p
+
+theorem coxeterMove_atIndex_wordProd (cm : CoxeterMove cs) (p : ℕ) (l : List B) : π (apply_coxeterMove_atIndex cs cm l p) = π l := by
+  revert l
+  induction p with
+  | zero =>
+    intro l
+    simp[apply_coxeterMove_atIndex]
+    rw[coxeterMove_wordProd]
+  | succ p ih =>
+    intro l
+    match l with
+    | [] => simp[apply_coxeterMove_atIndex]
+    | h::t =>
+      simp[apply_coxeterMove_atIndex, wordProd_cons]
+      exact ih t
