@@ -1,4 +1,7 @@
 import DemazureOperators.Coxeter
+
+set_option linter.unusedSectionVars false
+
 namespace CoxeterSystem
 
 variable {B : Type}  [DecidableEq B]
@@ -109,6 +112,10 @@ example (nm : cs.NilMove) : cs.CoxeterMove := CoxeterMove.nil nm
 def apply_braidMove_sequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
   List.foldr (cs.apply_braidMove) l bms
 
+lemma apply_braidMove_sequence_cons (bm : cs.BraidMove) (bms : List (cs.BraidMove)) (l : List B) :
+  cs.apply_braidMove_sequence (bm :: bms) l = cs.apply_braidMove bm (cs.apply_braidMove_sequence bms l) := by
+  simp[apply_braidMove_sequence]
+
 lemma cons_of_length_succ {α : Type} (l : List α) {p : ℕ} (h : l.length = p + 1) :
   ∃ (a : α) (t : List α), l = a :: t ∧ t.length = p := by
   cases l with
@@ -117,6 +124,28 @@ lemma cons_of_length_succ {α : Type} (l : List α) {p : ℕ} (h : l.length = p 
   | cons a t =>
     simp at h
     use a, t
+
+def shift_braidMove (bm : cs.BraidMove) : cs.BraidMove :=
+  match bm with
+  | BraidMove.mk i j p => BraidMove.mk i j (p + 1)
+
+lemma braidMove_cons (bm : cs.BraidMove) (l : List B) (a : B) :
+  a :: cs.apply_braidMove bm l = cs.apply_braidMove (cs.shift_braidMove bm) (a :: l) := by
+  rcases bm with ⟨i, j, p⟩
+  simp[shift_braidMove, apply_braidMove]
+
+lemma braidMoveSequence_cons (bms : List (cs.BraidMove)) (l : List B) (a : B) :
+  a :: cs.apply_braidMove_sequence bms l = cs.apply_braidMove_sequence (List.map cs.shift_braidMove bms) (a :: l) := by
+  induction bms with
+    | nil =>
+       simp[apply_braidMove_sequence]
+    | cons bm bms ih =>
+      rw[apply_braidMove_sequence]
+      rw[List.foldr_cons bms]
+      rw[cs.braidMove_cons bm]
+      rw[apply_braidMove_sequence] at ih
+      rw[ih]
+      simp[apply_braidMove_sequence_cons]
 
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
@@ -132,18 +161,13 @@ theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl'
     apply List.length_eq_zero.mp at hl'
     rw[hl, hl']
   | succ p ih =>
-
-    have ih' : ∃ (j : B) (t' : List B), l' = j :: t' := by
-      match l' with
-      | [] =>
-        simp at h_len
-      | j :: t' =>
-        use j, t'
-    rcases ih' with ⟨j, t', rfl⟩
+    rcases cons_of_length_succ l hl with ⟨i, t, rfl, ht⟩
+    rcases cons_of_length_succ l' hl' with ⟨j, t', rfl, ht'⟩
 
     by_cases first_letter_eq : i = j
     · rw[first_letter_eq]
       simp[apply_braidMove_sequence]
+      simp[apply_braidMove]
       rw[List.foldr_cons t]
 
 theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
