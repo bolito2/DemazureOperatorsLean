@@ -109,6 +109,15 @@ example (nm : cs.NilMove) : cs.CoxeterMove := CoxeterMove.nil nm
 def apply_braidMove_sequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
   List.foldr (cs.apply_braidMove) l bms
 
+lemma cons_of_length_succ {α : Type} (l : List α) {p : ℕ} (h : l.length = p + 1) :
+  ∃ (a : α) (t : List α), l = a :: t ∧ t.length = p := by
+  cases l with
+  | nil =>
+    simp at h
+  | cons a t =>
+    simp at h
+    use a, t
+
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
