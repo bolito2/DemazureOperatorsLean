@@ -109,6 +109,36 @@ example (nm : cs.NilMove) : cs.CoxeterMove := CoxeterMove.nil nm
 def apply_braidMove_sequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
   List.foldr (cs.apply_braidMove) l bms
 
-theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
+theorem matsumoto_reduced (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
+(hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
-  sorry
+  have h_len : l.length = l'.length := by
+    calc
+      l.length = ℓ (π l) := by
+        rw[IsReduced] at hr
+        rw[← hr]
+      _ = ℓ (π l') := by rw[h]
+      _ = l'.length := by
+        rw[IsReduced] at hr'
+        rw[← hr']
+
+  induction l with
+  | nil =>
+    simp at h_len
+    use []
+    simp[apply_braidMove_sequence]
+    apply Eq.comm.mp
+    apply List.length_eq_zero.mp (Eq.comm.mp h_len)
+  | cons i t ih =>
+    have ih' : ∃ (j : B) (t' : List B), l' = j :: t' := by
+      match l' with
+      | [] =>
+        simp at h_len
+      | j :: t' =>
+        use j, t'
+    rcases ih' with ⟨j, t', rfl⟩
+
+    by_cases first_letter_eq : i = j
+    · rw[first_letter_eq]
+      simp[apply_braidMove_sequence]
+      rw[List.foldr_cons t]

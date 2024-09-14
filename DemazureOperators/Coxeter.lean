@@ -4,7 +4,7 @@ import Init.Data.List.Lemmas
 
 set_option linter.unusedSectionVars false
 
-open CoxeterSystem
+namespace CoxeterSystem
 
 variable {B : Type}
 variable {W : Type} [Group W] [DecidableEq W]
@@ -16,7 +16,7 @@ local prefix:100 "ℓ" => cs.length
 
 def T : Type := {t : W // IsReflection cs t}
 
-def nReflectionOccurrences (cs : CoxeterSystem M W) (w : List B) (t : T cs) : ℕ :=
+def nReflectionOccurrences (w : List B) (t : T cs) : ℕ :=
   (cs.leftInvSeq w).count t.1
 
 def parityReflectionOccurrences (w : List B) (t : T cs) : ZMod 2 :=
