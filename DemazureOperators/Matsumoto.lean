@@ -150,10 +150,12 @@ lemma braidMoveSequence_cons (bms : List (cs.BraidMove)) (l : List B) (a : B) :
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
-  have h_len : l.length = l'.length := by rw[hl, hl']
 
+  revert l l'
   induction p with
   | zero =>
+    intro l l' hl hl' hr hr' h
+    have h_len : l.length = l'.length := by rw[hl, hl']
     simp at h_len
     use []
     simp[apply_braidMove_sequence]
@@ -161,14 +163,13 @@ theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl'
     apply List.length_eq_zero.mp at hl'
     rw[hl, hl']
   | succ p ih =>
+    intro l l' hl hl' hr hr' h
     rcases cons_of_length_succ l hl with ⟨i, t, rfl, ht⟩
     rcases cons_of_length_succ l' hl' with ⟨j, t', rfl, ht'⟩
 
     by_cases first_letter_eq : i = j
     · rw[first_letter_eq]
-      simp[apply_braidMove_sequence]
-      simp[apply_braidMove]
-      rw[List.foldr_cons t]
+
 
 theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
