@@ -155,7 +155,7 @@ theorem isReduced_cons (a : B) (l : List B) : cs.IsReduced (a :: l) → cs.IsRed
 
 lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
- ∀ (p : ℕ) (h : p ≤ M i j), ∃ t t' : List B, π (alternatingWord i j p ++ t) = w ∧ π (alternatingWord j i p ++ t') = w  := by
+ ∀ (p : ℕ) (h : p ≤ M i j), ∃ t t' : List B, π (alternatingWord i j p ++ t) = w  := by
   intro p
   induction p with
   | zero =>
@@ -165,7 +165,7 @@ lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i 
   | succ p ih =>
     intro hp
     have hp' : p ≤ M i j := by linarith
-    rcases ih hp' with ⟨t, t', ht, ht'⟩
+    rcases ih hp' with ⟨t, ht⟩
 
     have h_left_descent : cs.IsLeftDescent w i := by
       rw[← hil]
@@ -179,8 +179,8 @@ lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i 
 
       rw[← IsReduced]
       apply cs.isReduced_cons i l hr
-
     
+
 
 
 lemma wah (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l')) :
