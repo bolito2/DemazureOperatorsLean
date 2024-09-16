@@ -147,6 +147,45 @@ lemma braidMoveSequence_cons (bms : List (cs.BraidMove)) (l : List B) (a : B) :
       rw[ih]
       simp[apply_braidMove_sequence_cons]
 
+theorem isReduced_cons (a : B) (l : List B) : cs.IsReduced (a :: l) → cs.IsReduced l := by
+  intro h
+  have h' : l = (a::l).drop 1 := by simp
+  rw[h']
+  apply cs.isReduced_drop h
+
+lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
+ (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
+ ∀ (p : ℕ) (h : p ≤ M i j), ∃ t t' : List B, π (alternatingWord i j p ++ t) = w ∧ π (alternatingWord j i p ++ t') = w  := by
+  intro p
+  induction p with
+  | zero =>
+    intro h
+    simp[alternatingWord]
+    use i :: l
+  | succ p ih =>
+    intro hp
+    have hp' : p ≤ M i j := by linarith
+    rcases ih hp' with ⟨t, t', ht, ht'⟩
+
+    have h_left_descent : cs.IsLeftDescent w i := by
+      rw[← hil]
+      apply cs.isLeftDescent_iff.mpr
+      have hr_unfolded : cs.length (cs.wordProd (i :: l)) = l.length + 1 := by
+        simp[IsReduced] at hr
+        rw[← hr]
+
+      rw[hr]
+      simp[wordProd_cons]
+
+      rw[← IsReduced]
+      apply cs.isReduced_cons i l hr
+
+    
+
+
+lemma wah (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l')) :
+  ∃ t : List B, π (i :: l) = π (braidWord M i j ++ t) := sorry
+
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
@@ -187,7 +226,7 @@ theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl'
       rw[← ih']
       rw[braidMoveSequence_cons]
       use (List.map cs.shift_braidMove bms)
-      
+
 
 
 theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
