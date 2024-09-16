@@ -169,6 +169,25 @@ theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl'
 
     by_cases first_letter_eq : i = j
     · rw[first_letter_eq]
+      have htr : cs.IsReduced t := by
+        convert_to cs.IsReduced (List.drop 1 (i :: t))
+        apply cs.isReduced_drop hr
+      have htr' : cs.IsReduced t' := by
+        convert_to cs.IsReduced (List.drop 1 (j :: t'))
+        apply cs.isReduced_drop hr'
+
+      have h_prod : π t = π t' := by
+        apply @mul_left_cancel _ _ _ (cs.simple i) _ _
+        rw[← cs.wordProd_cons i t, ← cs.wordProd_cons i t', h]
+        rw[← first_letter_eq]
+
+      have ih' := ih t t' ht ht' htr htr' h_prod
+      rcases ih' with ⟨bms, ih'⟩
+      apply (List.cons_inj_right j).mpr at ih'
+      rw[← ih']
+      rw[braidMoveSequence_cons]
+      use (List.map cs.shift_braidMove bms)
+      
 
 
 theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
