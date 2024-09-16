@@ -163,9 +163,53 @@ lemma leftDescent_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs
 lemma leftInversion_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs.IsLeftInversion (π (i :: l)) (s i) := by
   apply (cs.isLeftInversion_simple_iff_isLeftDescent (π (i :: l)) i).mpr (cs.leftDescent_of_cons i l hr)
 
+theorem simple_injective (i j : B) (h : i ≠ j) : cs.simple i ≠ cs.simple j := by sorry
+
+theorem contradiction_of_mul_simple_eq_one (i j : B) (h : i ≠ j) (h' : cs.simple i * cs.simple j = 1) : False := by
+  apply cs.simple_injective i j h
+  apply (@mul_left_cancel_iff _ _ _ (s i)).mp
+  simp[h']
+
+theorem alternatingWord_succ_ne_alternatingWord_eraseIdx (i j : B) (p : ℕ) (hp : p < M i j) (hij : i ≠ j) :
+  ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by
+  induction p with
+  | zero =>
+    intro k hk
+    simp[alternatingWord, List.eraseIdx]
+    contradiction
+  | succ p ih =>
+    intro k hk
+    match k with
+    | 0 =>
+      rw[alternatingWord_succ']
+      rw[alternatingWord_succ']
+      simp
+      simp[wordProd_cons]
+      intro h
+      rw[← mul_assoc] at h
+      rw[mul_left_eq_self] at h
+
+      by_cases p_even : Even p
+      · have p_succ_odd : ¬ Even (p + 1) := by
+          simp
+          apply Even.add_one p_even
+
+        simp[p_even, p_succ_odd] at h
+        exact cs.contradiction_of_mul_simple_eq_one i j hij h
+      · have p_succ_even : Even (p + 1) := by
+          apply Odd.add_one
+          apply Nat.not_even_iff_odd.mp p_even
+
+        simp[p_even, p_succ_even] at h
+        exact cs.contradiction_of_mul_simple_eq_one j i (Ne.symm hij) h
+    | k + 1 =>
+      rw[alternatingWord_succ']
+      nth_rewrite 2 [alternatingWord_succ']
+      simp[List.eraseIdx_cons_succ]
+
 lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
- ∀ (p : ℕ) (h : p ≤ M i j), ∃ t t' : List B, π (alternatingWord i j p ++ t) = w  := by
+ ∀ (p : ℕ) (h : p ≤ M i j), ∃ t : List B, π (alternatingWord i j p ++ t) = w  := by
   intro p
   induction p with
   | zero =>
@@ -175,22 +219,81 @@ lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i 
   | succ p ih =>
     intro hp
     have hp' : p ≤ M i j := by linarith
+    have hp'' : p < M i j := by linarith
     rcases ih hp' with ⟨t, ht⟩
+    rw[← ht]
 
-    have h_left_descent : cs.IsLeftDescent w i := by
-      rw[← hil]
-      apply cs.isLeftDescent_iff.mpr
-      have hr_unfolded : cs.length (cs.wordProd (i :: l)) = l.length + 1 := by
-        simp[IsReduced] at hr
-        rw[← hr]
+    rw[alternatingWord_succ']
+    by_cases p_even : Even p
+    · simp[p_even]
+      simp[cs.wordProd_cons]
 
-      rw[hr]
-      simp[wordProd_cons]
+      suffices ∃ k : ℕ, s j * cs.wordProd (alternatingWord i j p ++ t) =
+      cs.wordProd (alternatingWord i j p ++ (t.eraseIdx k)) from by
+        rcases this with ⟨k, hk⟩
+        use (t.eraseIdx k)
+        rw[← hk]
+        simp[cs.wordProd_cons]
 
-      rw[← IsReduced]
-      apply cs.isReduced_cons i l hr
-    
+      have h_left_inversion_j : cs.IsLeftInversion (cs.wordProd (alternatingWord i j p ++ t)) (s j) := by
+        rw[ht, ← hjl']
+        apply cs.leftInversion_of_cons j l' hr'
 
+      rcases cs.strongExchangeProperty (alternatingWord i j p ++ t) ⟨s j, cs.isReflection_simple j ⟩ h_left_inversion_j with ⟨k, hk⟩
+
+      by_cases k_lt_len : k < p
+      · exfalso
+        have k_lt_len' : k < (alternatingWord i j p).length := by simp[k_lt_len]
+        rw[List.eraseIdx_append_of_lt_length k_lt_len' t] at hk
+
+        simp[cs.wordProd_append] at hk
+        rw[← mul_assoc] at hk
+        rw[mul_right_cancel_iff] at hk
+        rw[← wordProd_cons] at hk
+        have : j :: alternatingWord i j p = alternatingWord i j (p + 1) := by simp[alternatingWord_succ', p_even]
+        rw[this] at hk
+        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx i j p hp'' i_ne_j k k_lt_len hk
+
+      · simp at k_lt_len
+        rw[List.eraseIdx_append_of_length_le] at hk
+        rw[hk]
+        use (k - (alternatingWord i j p).length)
+        simp[k_lt_len]
+
+    · simp[p_even]
+      simp[cs.wordProd_cons]
+
+      suffices ∃ k : ℕ, s i * cs.wordProd (alternatingWord i j p ++ t) =
+      cs.wordProd (alternatingWord i j p ++ (t.eraseIdx k)) from by
+        rcases this with ⟨k, hk⟩
+        use (t.eraseIdx k)
+        rw[← hk]
+        simp[cs.wordProd_cons]
+
+      have h_left_inversion_i : cs.IsLeftInversion (cs.wordProd (alternatingWord i j p ++ t)) (s i) := by
+        rw[ht, ← hil]
+        apply cs.leftInversion_of_cons i l hr
+
+      rcases cs.strongExchangeProperty (alternatingWord i j p ++ t) ⟨s i, cs.isReflection_simple i ⟩ h_left_inversion_i with ⟨k, hk⟩
+
+      by_cases k_lt_len : k < p
+      · exfalso
+        have k_lt_len' : k < (alternatingWord i j p).length := by simp[k_lt_len]
+        rw[List.eraseIdx_append_of_lt_length k_lt_len' t] at hk
+
+        simp[cs.wordProd_append] at hk
+        rw[← mul_assoc] at hk
+        rw[mul_right_cancel_iff] at hk
+        rw[← wordProd_cons] at hk
+        have : i :: alternatingWord i j p = alternatingWord i j (p + 1) := by simp[alternatingWord_succ', p_even]
+        rw[this] at hk
+        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx i j p hp'' i_ne_j k k_lt_len hk
+
+      · simp at k_lt_len
+        rw[List.eraseIdx_append_of_length_le] at hk
+        rw[hk]
+        use (k - (alternatingWord i j p).length)
+        simp[k_lt_len]
 
 
 lemma wah (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l')) :
