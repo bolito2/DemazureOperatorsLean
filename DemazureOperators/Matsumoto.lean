@@ -153,6 +153,16 @@ theorem isReduced_cons (a : B) (l : List B) : cs.IsReduced (a :: l) → cs.IsRed
   rw[h']
   apply cs.isReduced_drop h
 
+lemma leftDescent_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs.IsLeftDescent (π (i :: l)) i := by
+  apply cs.isLeftDescent_iff.mpr
+  rw[hr]
+  simp[wordProd_cons]
+  rw[← IsReduced]
+  apply cs.isReduced_cons i l hr
+
+lemma leftInversion_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs.IsLeftInversion (π (i :: l)) (s i) := by
+  apply (cs.isLeftInversion_simple_iff_isLeftDescent (π (i :: l)) i).mpr (cs.leftDescent_of_cons i l hr)
+
 lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
  ∀ (p : ℕ) (h : p ≤ M i j), ∃ t t' : List B, π (alternatingWord i j p ++ t) = w  := by
