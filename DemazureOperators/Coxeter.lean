@@ -161,7 +161,7 @@ lemma centralS_equal_swapping_indices (i j : B) (p k : ℕ) (h : k + 1 < (altern
     apply Odd.add_one at h_even
     simp [h_even]
 
-theorem CoxeterSystem.get_leftInvSeq (w : List B) (j : Fin w.length) :
+theorem get_leftInvSeq (w : List B) (j : Fin w.length) :
   (cs.leftInvSeq w).get ⟨j, by simp⟩ =
   cs.wordProd (List.take j w) * s (w.get ⟨j, by simp⟩) * (cs.wordProd (List.take j w))⁻¹ := by
 
