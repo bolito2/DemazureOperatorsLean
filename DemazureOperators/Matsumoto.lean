@@ -40,7 +40,7 @@ def apply_braidMove (bm : cs.BraidMove) (l : List B) : List B :=
     match p with
     | 0 =>
       if l.take (M i j) = braidWord M i j then
-        braidWord M i j ++ l.drop (M i j)
+        braidWord M j i ++ l.drop (M i j)
       else
         l
     | p + 1 =>
@@ -91,6 +91,7 @@ theorem braidMove_wordProd (bm : cs.BraidMove) (l : List B) : π (cs.apply_braid
         nth_rewrite 2 [h']
         repeat rw[wordProd_append]
         rw[h]
+        simp[wordProd_braidWord_eq]
       · simp[h]
     | p + 1 =>
       match l with
