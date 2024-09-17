@@ -330,6 +330,19 @@ lemma prefix_braidWord (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π 
   · simp[ht]
   · exact htr
 
+theorem apply_braidMove_sequence_append (bms bms' : List (cs.BraidMove)) (l : List B) :
+  cs.apply_braidMove_sequence (bms ++ bms') l = cs.apply_braidMove_sequence bms (cs.apply_braidMove_sequence bms' l) := by
+  simp[apply_braidMove_sequence, List.foldr_append]
+
+theorem concatenate_braidMove_sequences (h : ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l')
+  (h' : ∃ bms' : List (cs.BraidMove), cs.apply_braidMove_sequence bms' l' = l'') :
+  ∃ bms'' : List (cs.BraidMove), cs.apply_braidMove_sequence bms'' l = l'' := by
+  rcases h with ⟨bms, hbms⟩
+  rcases h' with ⟨bms', hbms'⟩
+  use bms' ++ bms
+  simp[apply_braidMove_sequence_append]
+  simp[hbms', hbms]
+
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
