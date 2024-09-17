@@ -174,7 +174,7 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx (i j : B) (p : ℕ) (hp
   ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by sorry
   -- we need the permutation representation to prove this --
 
-lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
+lemma prefix_braidWord_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
  ∀ (p : ℕ) (h : p ≤ M i j), ∃ t : List B, π (alternatingWord i j p ++ t) = w ∧ cs.IsReduced (alternatingWord i j p ++ t) := by
   intro p
@@ -317,8 +317,18 @@ lemma wah_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i 
         simp[k_lt_len]
 
 
-lemma wah (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l')) :
-  ∃ t : List B, π (i :: l) = π (braidWord M i j ++ t) := sorry
+lemma prefix_braidWord (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l'))
+(hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
+  ∃ t : List B, π (i :: l) = π (braidWord M i j ++ t) ∧ cs.IsReduced (braidWord M i j ++ t) := by
+  have h : M i j ≤ M i j := by linarith
+  have h' : π (j :: l') = π (i :: l) := by rw[← pi_eq]
+
+  rcases cs.prefix_braidWord_aux (π (i :: l)) l l' i j i_ne_j rfl h' hr hr' (M i j) h with ⟨t, ht, htr⟩
+  use t
+  rw[braidWord]
+  constructor
+  · simp[ht]
+  · exact htr
 
 theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl' : l'.length = p)
 (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
@@ -360,6 +370,7 @@ theorem matsumoto_reduced_aux (p : ℕ) (l l' : List B) (hl : l.length = p) (hl'
       rw[← ih']
       rw[braidMoveSequence_cons]
       use (List.map cs.shift_braidMove bms)
+
 
 
 
