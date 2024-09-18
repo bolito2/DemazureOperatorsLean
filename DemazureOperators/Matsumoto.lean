@@ -259,12 +259,32 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx (i j : B) (p : ℕ) (hp
 
         simp at h_contra
         rw[← mul_assoc] at h_contra
-        have : (p / 2 + 1) ≠ 0 := by
+        let p_succ := p / 2 + 1
+        have p_succ_ne_zero : p_succ ≠ 0 := by
           apply Nat.succ_ne_zero
-        rw[← mul_pow_sub_one this (s i * s j)] at h_contra
-        simp at h_contra
-        
+        have : (p / 2) = p_succ - 1 := by
+          simp[p_succ]
+        rw[this] at h_contra
+        rw[mul_pow_sub_one p_succ_ne_zero (s j * s i)] at h_contra
 
+        simp[p_succ] at h_contra
+        apply mul_inv_eq_one.mpr at h_contra
+        rw[← inv_pow (s j * s i) (p/2 + 1)] at h_contra
+        simp at h_contra
+        rw[← pow_add] at h_contra
+
+        have : p / 2 + 1 + (p / 2 + 1) = p + 1 := by
+          ring
+          convert_to 1 + 1 + p / 2 * 2 = p + 1
+          rw[add_comm]
+          simp at p_even
+          rw[add_assoc]
+          rw[Nat.one_add_div_two_mul_two_of_odd p_even]
+          ring
+        rw[this] at h_contra
+
+        apply cs.alternatingWord_lt_two_mul_M_ne_one i j (p + 1) _ h_contra
+        linarith
 
 lemma prefix_braidWord_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
