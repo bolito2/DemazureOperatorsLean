@@ -1,4 +1,5 @@
 import DemazureOperators.Coxeter
+import Init.Data.List.Erase
 
 set_option linter.unusedSectionVars false
 
@@ -7,6 +8,10 @@ namespace CoxeterSystem
 variable {B : Type}  [DecidableEq B]
 variable {W : Type} [Group W] [DecidableEq W]
 variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
+
+-- assume the coxeter system has some properties --
+variable (hm : ∀ (i j : B), 1 ≤ M i j) -- finite (non-zero) indexes in the matrix
+
 
 structure NilMove (cs : CoxeterSystem M W) where
   i : B
@@ -171,9 +176,95 @@ theorem contradiction_of_mul_simple_eq_one (i j : B) (h : i ≠ j) (h' : cs.simp
   apply (@mul_left_cancel_iff _ _ _ (s i)).mp
   simp[h']
 
+lemma alternatingWord_lt_two_mul_M_ne_one (i j : B) (p : ℕ) (hp : p < 2 * M i j) :
+  (s i * s j) ^ p ≠ 1 := by sorry
+
 theorem alternatingWord_succ_ne_alternatingWord_eraseIdx (i j : B) (p : ℕ) (hp : p < M i j) (hij : i ≠ j) :
-  ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by sorry
-  -- we need the permutation representation to prove this --
+  ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by
+  revert i j
+
+  induction p with
+  | zero =>
+    intro k hk
+    simp[alternatingWord, cs.wordProd_cons]
+  | succ p ih =>
+    intro i j hp hij k hk
+    have hp' : p < M i j := by linarith
+    have hp'' : p < M j i := by simp[M.symmetric]; exact hp'
+
+    rw[alternatingWord_succ]
+    nth_rewrite 2 [alternatingWord_succ]
+    simp
+
+    by_cases h_erase : k < (alternatingWord j i p).length
+    · rw[List.eraseIdx_append_of_lt_length h_erase [j]]
+      intro h_contra
+      simp[cs.wordProd_append] at h_contra
+
+      have hij' : j ≠ i := by
+        intro h
+        apply hij
+        rw[h]
+      have h_erase' : k < p := by simp at h_erase; exact h_erase
+
+      apply ih j i hp'' hij' k h_erase' h_contra
+
+    · have h_erase' : (alternatingWord j i p).length ≤ k := by
+        apply Nat.le_of_not_lt
+        exact h_erase
+
+      rw[List.eraseIdx_append_of_length_le h_erase' [j]]
+      have h_erase_k : [j].eraseIdx (k - (alternatingWord j i p).length) = [] := by
+        apply List.eraseIdx_eq_nil.mpr
+        right
+        simp
+        apply Nat.sub_eq_zero_iff_le.mpr
+        linarith
+
+      rw[h_erase_k]
+      simp
+      intro h_contra
+
+      have : cs.wordProd (alternatingWord j i (p + 1) ++ [j]) = cs.wordProd (alternatingWord i j (p + 2)) := by
+        simp[alternatingWord_succ]
+
+      rw[this] at h_contra
+      simp[prod_alternatingWord_eq_mul_pow] at h_contra
+      by_cases p_even : Even p
+      · have p_even' : Even (p + 2) := by
+          apply Nat.even_add.mpr
+          simp
+          exact p_even
+        simp[p_even, p_even'] at h_contra
+        apply mul_inv_eq_one.mpr at h_contra
+        rw[← inv_pow (s j * s i) (p/2)] at h_contra
+        simp at h_contra
+        rw[← pow_add] at h_contra
+        have : p / 2 + 1 + p / 2 = p + 1 := by
+          have : 2 * (p / 2) = p := Nat.two_mul_div_two_of_even p_even
+          ring
+          simp[mul_comm, this]
+        rw[this] at h_contra
+
+        apply cs.alternatingWord_lt_two_mul_M_ne_one i j (p + 1) _ h_contra
+        linarith
+
+      · have p_odd : ¬ Even (p + 2) := by
+          intro h
+          apply Nat.even_add.mp at h
+          simp[h] at p_even
+
+        simp[p_even, p_odd] at h_contra
+        apply (@mul_left_cancel_iff _ _ _ (s j) _ _).mpr at h_contra
+
+        simp at h_contra
+        rw[← mul_assoc] at h_contra
+        have : (p / 2 + 1) ≠ 0 := by
+          apply Nat.succ_ne_zero
+        rw[← mul_pow_sub_one this (s i * s j)] at h_contra
+        simp at h_contra
+        
+
 
 lemma prefix_braidWord_aux (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
@@ -364,7 +455,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
   revert l l'
   induction p with
   | zero =>
-    intro l l' hl hl' hr hr' h
+    intro l l' hl hl' _ _ _
     have h_len : l.length = l'.length := by rw[hl, hl']
     simp at h_len
     use []
@@ -645,9 +736,9 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
         exact ih'
 
 
-theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
+theorem matsumoto_reduced (hm : ∀ (i j : B), 1 ≤ M i j) (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
-  apply cs.matsumoto_reduced_aux (l.length) l l' rfl _ hr hr' h
+  apply cs.matsumoto_reduced_aux hm (l.length) l l' rfl _ hr hr' h
   calc
       l'.length = ℓ (π l') := by
         rw[IsReduced] at hr'
