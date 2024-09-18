@@ -477,12 +477,19 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
         rw[alternatingWord_succ']
         simp[p'_even]
 
-        rcases cs.prefix_braidWord i_tail j_tail i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail', hb, b_reduced⟩
-        have : b_tail' = b_tail := by -- solve this --
+        have switch_braidWord : π (braidWord M j i ++ b_tail) = π (braidWord M i j ++ b_tail) := by
+          simp[wordProd_append]
+          rw[cs.wordProd_braidWord_eq j i]
 
+        rw[switch_braidWord] at hb'
+        have b_reduced' : cs.IsReduced (braidWord M i j ++ b_tail) := by
+          apply cs.isReduced_of_eq_length (braidWord M j i ++ b_tail) (braidWord M i j ++ b_tail)
+          simp[M.symmetric]
+          exact switch_braidWord
+          exact b_reduced
 
         have hb' : cs.wordProd (j :: j_tail) = cs.wordProd (braidWord M i j ++ b_tail) := by
-          rw[← hb]
+          rw[← hb']
           exact Eq.symm h_eq
 
         have b_word_cons : (braidWord M i j ++ b_tail) = j :: (alternatingWord i j m ++ b_tail) := by
@@ -501,7 +508,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
             simp at this
             rw[← this]
             ring
-          rw[← cs.eq_length_of_isReduced (j :: j_tail) (braidWord M i j ++ b_tail) hb' l'_reduced b_reduced]
+          rw[← cs.eq_length_of_isReduced (j :: j_tail) (braidWord M i j ++ b_tail) hb' l'_reduced b_reduced']
           exact len_l'_eq_p
 
         have j_tail_reduced : cs.IsReduced j_tail := by
@@ -510,7 +517,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
         have aword_is_reduced : cs.IsReduced (alternatingWord i j m ++ b_tail) := by
           apply cs.isReduced_cons j ((alternatingWord i j m) ++ b_tail)
           rw[← b_word_cons]
-          exact b_reduced
+          exact b_reduced'
 
         have j_tail_eq_aword : π (alternatingWord i j m ++ b_tail) = π j_tail := by
           rw[b_word_cons] at hb'
@@ -524,6 +531,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
         suffices cs.apply_braidMove_sequence bms (alternatingWord i j m ++ b_tail) = j_tail from by
           rw[this]
         exact ih'
+      
 
 
 
