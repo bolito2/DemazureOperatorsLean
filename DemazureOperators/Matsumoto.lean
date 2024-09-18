@@ -357,8 +357,6 @@ theorem eq_length_of_isReduced (l l' : List B) (h_eq : π l = π l') (hr : cs.Is
   rw[← hr, ← hr']
   rw[h_eq]
 
-
-
 theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' : List B) (len_l_eq_p : l.length = p) (len_l'_eq_p : l'.length = p)
 (l_reduced : cs.IsReduced l) (l'_reduced : cs.IsReduced l') (h_eq : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
@@ -531,9 +529,120 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (p : ℕ) (l l' 
         suffices cs.apply_braidMove_sequence bms (alternatingWord i j m ++ b_tail) = j_tail from by
           rw[this]
         exact ih'
-      
+      · rcases cs.prefix_braidWord i_tail j_tail i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
+        apply cs.concatenate_braidMove_sequences (i :: i_tail) (braidWord M i j ++ b_tail) (j :: j_tail)
 
+        simp[braidWord]
+        rw[hm]
+        rw[alternatingWord_succ']
+        simp[p'_even]
 
+        have b_word_cons : (braidWord M i j ++ b_tail) = i :: (alternatingWord i j m ++ b_tail) := by
+          simp[braidWord]
+          rw[hm]
+          simp[alternatingWord_succ']
+          simp[p'_even]
+
+        have b_len_p : (alternatingWord i j m ++ b_tail).length = p := by
+          suffices (braidWord M i j ++ b_tail).length = p + 1 from by
+            simp[braidWord] at this
+            rw[hm] at this
+            simp[alternatingWord]
+            nth_rewrite 1 [add_comm] at this
+            rw[← add_assoc] at this
+            simp at this
+            rw[← this]
+            ring
+          rw[← cs.eq_length_of_isReduced (i :: i_tail) (braidWord M i j ++ b_tail) hb l_reduced b_reduced]
+          exact len_l_eq_p
+
+        have i_tail_reduced : cs.IsReduced i_tail := by
+          apply cs.isReduced_cons i i_tail l_reduced
+
+        have aword_is_reduced : cs.IsReduced (alternatingWord i j m ++ b_tail) := by
+          apply cs.isReduced_cons i ((alternatingWord i j m) ++ b_tail)
+          rw[← b_word_cons]
+          exact b_reduced
+
+        have i_tail_eq_aword : π i_tail = π (alternatingWord i j m ++ b_tail) := by
+          rw[b_word_cons] at hb
+          simp[wordProd_cons] at hb
+          exact hb
+
+        rcases ih i_tail (alternatingWord i j m ++ b_tail) len_i_tail_eq_p b_len_p i_tail_reduced aword_is_reduced i_tail_eq_aword with ⟨bms, ih'⟩
+
+        use (List.map cs.shift_braidMove bms)
+
+        rw[← braidMoveSequence_cons]
+        suffices cs.apply_braidMove_sequence bms i_tail = (alternatingWord i j m ++ b_tail) from by
+          rw[this]
+        exact ih'
+
+        apply cs.concatenate_braidMove_sequences (braidWord M i j ++ b_tail) (braidWord M j i ++ b_tail) (j :: j_tail)
+
+        use [BraidMove.mk i j 0]
+        simp[apply_braidMove_sequence]
+        simp[apply_braidMove]
+
+        simp[braidWord]
+        rw[hm']
+        rw[alternatingWord_succ']
+        simp[p'_even]
+
+        have b_word_cons : (braidWord M j i ++ b_tail) = j :: (alternatingWord j i m ++ b_tail) := by
+          simp[braidWord]
+          rw[hm']
+          simp[alternatingWord_succ']
+          simp[p'_even]
+
+        have switch_braidWord : π (braidWord M j i ++ b_tail) = π (braidWord M i j ++ b_tail) := by
+          simp[wordProd_append]
+          rw[cs.wordProd_braidWord_eq j i]
+
+        have hb' : cs.wordProd (j :: j_tail) = cs.wordProd (braidWord M j i ++ b_tail) := by
+          rw[switch_braidWord]
+          rw[← hb]
+          exact Eq.symm h_eq
+
+        have b_reduced' : cs.IsReduced (braidWord M j i ++ b_tail) := by
+          apply cs.isReduced_of_eq_length (braidWord M i j ++ b_tail) (braidWord M j i ++ b_tail)
+          simp[M.symmetric]
+          exact Eq.symm switch_braidWord
+          exact b_reduced
+
+        have b_len_p : (alternatingWord j i m ++ b_tail).length = p := by
+          suffices (braidWord M j i ++ b_tail).length = p + 1 from by
+            simp[braidWord] at this
+            rw[hm'] at this
+            simp[alternatingWord]
+            nth_rewrite 1 [add_comm] at this
+            rw[← add_assoc] at this
+            simp at this
+            rw[← this]
+            ring
+          rw[← cs.eq_length_of_isReduced (j :: j_tail) (braidWord M j i ++ b_tail) hb' l'_reduced b_reduced']
+          exact len_l'_eq_p
+
+        have j_tail_reduced : cs.IsReduced j_tail := by
+          apply cs.isReduced_cons j j_tail l'_reduced
+
+        have aword_is_reduced : cs.IsReduced (alternatingWord j i m ++ b_tail) := by
+          apply cs.isReduced_cons j ((alternatingWord j i m) ++ b_tail)
+          rw[← b_word_cons]
+          exact b_reduced'
+
+        have j_tail_eq_aword : π (alternatingWord j i m ++ b_tail) = π j_tail := by
+          rw[b_word_cons] at hb'
+          simp[wordProd_cons] at hb'
+          exact Eq.symm hb'
+
+        rcases ih (alternatingWord j i m ++ b_tail) j_tail b_len_p len_j_tail_eq_p aword_is_reduced j_tail_reduced j_tail_eq_aword with ⟨bms, ih'⟩
+
+        use (List.map cs.shift_braidMove bms)
+        rw[← braidMoveSequence_cons]
+        suffices cs.apply_braidMove_sequence bms (alternatingWord j i m ++ b_tail) = j_tail from by
+          rw[this]
+        exact ih'
 
 
 theorem matsumoto_reduced (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
