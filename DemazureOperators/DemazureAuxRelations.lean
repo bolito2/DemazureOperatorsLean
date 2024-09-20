@@ -75,19 +75,18 @@ lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : |
 
     simp[h1,h2,h3,h4,c0,c1,c2,c3]
 
+lemma transposition_commutes_non_adjacent' (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1) :
+  TranspositionFun (Fin.castSucc i) (Fin.succ i) ∘ (TranspositionFun (Fin.castSucc j) (Fin.succ j)) =
+   TranspositionFun (Fin.castSucc j) (Fin.succ j) ∘ (TranspositionFun (Fin.castSucc i) (Fin.succ i)) := by
+    funext k'
+    simp[transposition_commutes_non_adjacent i j h ]
+
 lemma swap_variables_commutes_non_adjacent (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1)
  {p : MvPolynomial (Fin (n + 1)) ℂ} :
   SwapVariablesFun (Fin.castSucc i) (Fin.succ i) (SwapVariablesFun (Fin.castSucc j) (Fin.succ j) p) =
    SwapVariablesFun (Fin.castSucc j) (Fin.succ j) (SwapVariablesFun (Fin.castSucc i) (Fin.succ i) p) := by
     simp[SwapVariablesFun, Transposition, Function.comp]
-
-    have wah : (fun x ↦ TranspositionFun (Fin.castSucc i) (Fin.succ i) (TranspositionFun (Fin.castSucc j) (Fin.succ j) x)) =
-    (fun x ↦ TranspositionFun (Fin.castSucc j) (Fin.succ j) (TranspositionFun (Fin.castSucc i) (Fin.succ i) x)) :=
-    by
-      funext k
-      rw[transposition_commutes_non_adjacent i j h]
-    rw[wah]
-
+    rw[transposition_commutes_non_adjacent' i j h]
 
 lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val| > 1) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   (DemAux i ∘ DemAux j) (mk' p) = (DemAux j ∘ DemAux i) (mk' p) := by
@@ -167,24 +166,18 @@ lemma transposition_commutes_adjacent {i : Fin n} {j : Fin (n + 1)} (h0 : i < n 
 
   simp[c0,c1,c2]
 
+lemma transposition_commutes_adjacent' {i : Fin n} (h0 : i < n + 1) (h1 : i + 1 < n + 1) (h2 : i + 2 < n + 1) :
+  TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩ ∘ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) ∘ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩) =
+    TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ ∘ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩) ∘ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) := by
+
+  funext j
+  simp[transposition_commutes_adjacent h0 h1 h2]
+
 lemma swap_variables_commutes_adjacent {i : Fin n} {p : MvPolynomial (Fin (n + 1)) ℂ} (h0 : i < n + 1) (h1 : i + 1 < n + 1) (h2 : i + 2 < n + 1) :
   SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ p)) =
     SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ p)) := by
   simp[SwapVariablesFun, Transposition, Function.comp]
-
-  have huh : (fun x ↦
-        TranspositionFun { val := i, isLt := h0 } { val := i + 1, isLt := h1 }
-          (TranspositionFun { val := i + 1, isLt := h1 } { val := i + 2, isLt := h2 }
-            (TranspositionFun { val := i, isLt := h0 } { val := i + 1, isLt := h1 } x))) =
-
-          (fun x ↦
-        TranspositionFun { val := i + 1, isLt := h1 } { val := i + 2, isLt := h2 }
-          (TranspositionFun { val := i, isLt := h0 } { val := i + 1, isLt := h1 }
-            (TranspositionFun { val := i + 1, isLt := h1 } { val := i + 2, isLt := h2 } x))) := by
-
-            funext j
-            rw[transposition_commutes_adjacent h0 h1 h2]
-  rw[huh]
+  rw[transposition_commutes_adjacent' h0 h1 h2]
 
 @[simp]
 lemma omg {i : ℕ} : i + 1 + 1 = i + 2 := by
