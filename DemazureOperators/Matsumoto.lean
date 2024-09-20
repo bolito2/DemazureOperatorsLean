@@ -1,4 +1,4 @@
-import DemazureOperators.Coxeter
+import DemazureOperators.StrongExchange
 import Init.Data.List.Erase
 
 set_option linter.unusedSectionVars false
