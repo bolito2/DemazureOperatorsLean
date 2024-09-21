@@ -34,7 +34,7 @@ lemma demazure_commutes_adjacent (i : Fin n) (h : i + 1 < n) : ∀ p : MvPolynom
   apply demaux_commutes_adjacent
 
 -- Demazure operators with non-adjacent indices commute
-lemma demazure_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val| > 1) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
+lemma demazure_commutes_non_adjacent (i j : Fin n)  (h : NonAdjacent i j) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   (Demazure i ∘ Demazure j) p = (Demazure j ∘ Demazure i) p := by
   intro p
   simp[Demazure]
@@ -44,7 +44,7 @@ lemma demazure_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val
   exact h
 
 -- Relation between demazure operator and multiplication by non-adjacent monomials
-lemma demazure_mul_monomial_non_adjacent (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
+lemma demazure_mul_monomial_non_adjacent (i j : Fin n) (h : NonAdjacent i j) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   Demazure i (p * X (Fin.castSucc j)) = (Demazure i p) * (X (Fin.castSucc j)) := by
   intro p
   simp[Demazure]

@@ -26,37 +26,17 @@ lemma demaux_order_two : ∀ (i : Fin n) (p : PolyFraction n),
   simp[r, DemAux']
   ring
 
--- Helper lemma to get all important inequalities for non-adjacent indices
-lemma unfold_non_adjacent (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1) :
-  (Fin.castSucc i : Fin (n + 1)) ≠ (Fin.castSucc j : Fin (n + 1)) ∧
+def NonAdjacent (i j : Fin n) : Prop :=
+ (Fin.castSucc i : Fin (n + 1)) ≠ (Fin.castSucc j : Fin (n + 1)) ∧
   (Fin.castSucc i : Fin (n + 1)) ≠ (Fin.succ j : Fin (n + 1)) ∧
   (Fin.succ i : Fin (n + 1)) ≠ (Fin.castSucc j : Fin (n + 1)) ∧
-  (Fin.succ i : Fin (n + 1)) ≠ (Fin.succ j : Fin (n + 1)) := by
-    constructor
-    · apply Fin.val_ne_iff.mp
-      simp [Fin.castSucc]
-      intro wah
-      simp[wah] at h
-    constructor
-    · apply Fin.val_ne_iff.mp
-      simp [Fin.castSucc]
-      intro wah
-      simp[wah] at h
-    constructor
-    · apply Fin.val_ne_iff.mp
-      simp [Fin.castSucc]
-      intro wah
-      simp[← wah] at h
-    apply Fin.val_ne_iff.mp
-    simp [Fin.castSucc]
-    intro wah
-    simp[wah] at h
+  (Fin.succ i : Fin (n + 1)) ≠ (Fin.succ j : Fin (n + 1))
 
 -- Now prove that demazure operators with non-adjacent indices commute
-lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : |(i.val : ℤ ) - j.val| > 1) :
+lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : NonAdjacent i j) :
   TranspositionFun (Fin.castSucc i) (Fin.succ i) (TranspositionFun (Fin.castSucc j) (Fin.succ j) k) =
    TranspositionFun (Fin.castSucc j) (Fin.succ j) (TranspositionFun (Fin.castSucc i) (Fin.succ i) k) := by
-    rcases unfold_non_adjacent i j h with ⟨h1, h2, h3, h4⟩
+    rcases h with ⟨h1, h2, h3, h4⟩
 
     by_cases c0 : k = Fin.castSucc i
     simp[h1,h2,h3,h4,c0]
@@ -75,20 +55,20 @@ lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : |
 
     simp[h1,h2,h3,h4,c0,c1,c2,c3]
 
-lemma transposition_commutes_non_adjacent' (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1) :
+lemma transposition_commutes_non_adjacent' (i j : Fin n) (h : NonAdjacent i j) :
   TranspositionFun (Fin.castSucc i) (Fin.succ i) ∘ (TranspositionFun (Fin.castSucc j) (Fin.succ j)) =
    TranspositionFun (Fin.castSucc j) (Fin.succ j) ∘ (TranspositionFun (Fin.castSucc i) (Fin.succ i)) := by
     funext k'
     simp[transposition_commutes_non_adjacent i j h ]
 
-lemma swap_variables_commutes_non_adjacent (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1)
+lemma swap_variables_commutes_non_adjacent (i j : Fin n) (h : NonAdjacent i j)
  {p : MvPolynomial (Fin (n + 1)) ℂ} :
   SwapVariablesFun (Fin.castSucc i) (Fin.succ i) (SwapVariablesFun (Fin.castSucc j) (Fin.succ j) p) =
    SwapVariablesFun (Fin.castSucc j) (Fin.succ j) (SwapVariablesFun (Fin.castSucc i) (Fin.succ i) p) := by
     simp[SwapVariablesFun, Transposition, Function.comp]
     rw[transposition_commutes_non_adjacent' i j h]
 
-lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val| > 1) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
+lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : NonAdjacent i j) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   (DemAux i ∘ DemAux j) (mk' p) = (DemAux j ∘ DemAux i) (mk' p) := by
   intro p
   simp[DemAux, mk']
@@ -96,24 +76,24 @@ lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : |(i.val : ℤ ) - j.val| 
   apply mk_eq.mpr
   simp[DemAux']
 
-  rcases unfold_non_adjacent i j h with ⟨h1, h2, h3, h4⟩
+  simp[swap_variables_commutes_non_adjacent i j h]
 
-  simp[swap_variables_commutes_non_adjacent i j h, h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
-
+  rcases h with ⟨h1, h2, h3, h4⟩
+  simp[h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
   ring
 
 /-- Prove some relations between Demazure operators and multiplication by monomials, in the
 adjacent and non-adjacent cases -/
-lemma demaux_mul_monomial_non_adjacent (i j : Fin n) (h : |(i.val : ℤ ) - j.val| > 1) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
+lemma demaux_mul_monomial_non_adjacent (i j : Fin n) (h : NonAdjacent i j) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   DemAux i (mk' (p * X (Fin.castSucc j))) = (DemAux i (mk' p)) * (mk' (X (Fin.castSucc j))) := by
   intro p
   simp[DemAux, mul]
-  repeat rw[lift_r]
   apply mk_eq.mpr
   simp[DemAux', mul']
 
-  rcases unfold_non_adjacent i j h with ⟨h1, h2, h3, h4⟩
-  simp[swap_variables_commutes_non_adjacent i j h, h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
+  rcases h with ⟨h1, h2, h3, h4⟩
+  simp[h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
+
   ring
 
 lemma demaux_mul_monomial_adjacent (i : Fin n) (h : i + 1 < n) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
