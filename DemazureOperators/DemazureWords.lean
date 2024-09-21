@@ -15,6 +15,8 @@ local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "ℓ" => cs.length
 
+instance : DecidableEq (@M n).Group := by sorry
+
 lemma one_le_M : ∀ i j : Fin n, 1 ≤ M i j := by
   intro i j
   simp[M, CoxeterMatrix.Aₙ]
@@ -172,4 +174,9 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMoveSequence bms l) := by
 theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : cs.IsReduced l) (hr' : cs.IsReduced l') :
   DemazureOfWord l = DemazureOfWord l' := by
 
-  sorry
+  suffices ∃ (bms : List cs.BraidMove), cs.apply_braidMoveSequence bms l = l' from by
+    rcases this with ⟨bms, h⟩
+    rw[← h]
+    exact demazure_of_braidMoveSequence l bms
+
+  exact cs.matsumoto_reduced sorry sorry l l' hr hr' h_eq
