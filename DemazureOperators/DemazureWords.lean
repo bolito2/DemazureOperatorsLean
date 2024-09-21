@@ -78,21 +78,60 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
         by_cases h_eq : i = j
         · simp[h_eq]
 
-        by_cases h_adjacent : j.succ = i.castSucc ∨ i.succ = j.castSucc
+        by_cases h_adjacent : NonAdjacent i j
         · have j_ne_i : ¬ j = i := by
             intro h
             rw[h] at h_eq
             contradiction
-          have h_adjacent' : i.succ = j.castSucc ∨ j.succ = i.castSucc := by
-            rcases h_adjacent with h1 | h2
-            · right
-              simp[h1]
-            · left
-              simp[h2]
-          simp[M, CoxeterMatrix.Aₙ, j_ne_i, h_eq, h_adjacent, h_adjacent']
+
+          rcases h_adjacent with ⟨_, h2, h3, _⟩
+          simp at h2 h3
+
+          have h2' := not_imp_not.mpr Fin.eq_of_val_eq h2
+          have h3' := not_imp_not.mpr Fin.eq_of_val_eq h3
+
+          simp at h2' h3'
+
+          simp[M, CoxeterMatrix.Aₙ, h_eq, j_ne_i, h2', h3', Ne.symm h2', Ne.symm h3']
           simp[alternatingWord, DemazureOfWord, Demazure, LinearMap.comp, Function.comp]
 
-          rcases h_adjacent with h1 | h2
+          funext p
+          apply demazure_commutes_non_adjacent i j
+          simp[NonAdjacent]
+          constructor
+          · exact h_eq
+          constructor
+          · exact h2
+          constructor
+          · exact h3
+          exact h_eq
+
+        · have j_ne_i : ¬ j = i := by
+            intro h
+            rw[h] at h_eq
+            contradiction
+          have h_adjacent' : j.val + 1 = i.val ∨ i.val + 1 = j.val := by
+            rw[NonAdjacent] at h_adjacent
+            simp at h_adjacent
+            by_contra h_contra
+            simp at h_contra
+            rcases h_contra with ⟨h1, h2⟩
+            apply h_eq
+            apply h_adjacent h_eq
+            intro h_fin
+            apply h1
+            apply Eq.symm
+            apply Fin.val_eq_of_eq h_fin
+
+            intro h_fin
+            apply h2
+            apply Fin.val_eq_of_eq h_fin
+
+
+          simp[M, CoxeterMatrix.Aₙ, j_ne_i, h_eq, h_adjacent', Or.comm.mp h_adjacent']
+          simp[alternatingWord, DemazureOfWord, Demazure, LinearMap.comp, Function.comp]
+
+          rcases h_adjacent' with h1 | h2
           · have hj : j.val + 1 < n := by
               rw[h1]
               simp
@@ -113,38 +152,7 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
             rw[← h2']
             funext p
             exact Eq.symm (demazure_commutes_adjacent i hi p)
-        · have j_ne_i : ¬ j = i := by
-            intro h
-            rw[h] at h_eq
-            contradiction
-
-          have h_adjacent' : ¬ (i.val + 1 = j.val ∨ j.val + 1 = i.val) := by
-            intro h_contra
-            apply h_adjacent
-
-            rcases h_contra with h1 | h2
-            · right
-              simp[h1]
-            · left
-              simp[h2]
-
-          simp[M, CoxeterMatrix.Aₙ, h_eq, j_ne_i, h_adjacent, h_adjacent']
-          simp[alternatingWord, DemazureOfWord, Demazure, LinearMap.comp, Function.comp]
-
-          funext p
-          apply demazure_commutes_non_adjacent i j
-          simp[NonAdjacent]
-          constructor
-          · exact h_eq
-          constructor
-          ·
-
-
-          | 1 => sorry
-          | 2 => sorry
-
-
-
+      · simp[h]
     | p + 1 =>
       simp[DemazureOfWord, apply_braidMove]
       simp[LinearMap.comp, Function.comp]
