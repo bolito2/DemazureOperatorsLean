@@ -159,6 +159,15 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
       apply congr_arg
       rw[ih ⟨i, j, p⟩]
 
+lemma demazure_of_braidMoveSequence (l : List (Fin n)) (bms : List cs.BraidMove) :
+DemazureOfWord l = DemazureOfWord (cs.apply_braidMoveSequence bms l) := by
+  induction bms with
+  | nil =>
+    simp[apply_braidMoveSequence]
+  | cons bm bms ih =>
+    rw[apply_braidMoveSequence]
+    rw[← demazure_of_braidMove (cs.apply_braidMoveSequence bms l) bm]
+    exact ih
 
 theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : cs.IsReduced l) (hr' : cs.IsReduced l') :
   DemazureOfWord l = DemazureOfWord l' := by
