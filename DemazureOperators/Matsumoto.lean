@@ -115,12 +115,12 @@ def apply_coxeterMove_sequence (cms : List (cs.CoxeterMove)) (l : List B) : List
 
 example (nm : cs.NilMove) : cs.CoxeterMove := CoxeterMove.nil nm
 
-def apply_braidMove_sequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
+def apply_braidMoveSequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
   List.foldr (cs.apply_braidMove) l bms
 
-lemma apply_braidMove_sequence_cons (bm : cs.BraidMove) (bms : List (cs.BraidMove)) (l : List B) :
-  cs.apply_braidMove_sequence (bm :: bms) l = cs.apply_braidMove bm (cs.apply_braidMove_sequence bms l) := by
-  simp[apply_braidMove_sequence]
+lemma apply_braidMoveSequence_cons (bm : cs.BraidMove) (bms : List (cs.BraidMove)) (l : List B) :
+  cs.apply_braidMoveSequence (bm :: bms) l = cs.apply_braidMove bm (cs.apply_braidMoveSequence bms l) := by
+  simp[apply_braidMoveSequence]
 
 lemma cons_of_length_succ {α : Type} (l : List α) {p : ℕ} (h : l.length = p + 1) :
   ∃ (a : α) (t : List α), l = a :: t ∧ t.length = p := by
@@ -141,17 +141,17 @@ lemma braidMove_cons (bm : cs.BraidMove) (l : List B) (a : B) :
   simp[shift_braidMove, apply_braidMove]
 
 lemma braidMoveSequence_cons (bms : List (cs.BraidMove)) (l : List B) (a : B) :
-  a :: cs.apply_braidMove_sequence bms l = cs.apply_braidMove_sequence (List.map cs.shift_braidMove bms) (a :: l) := by
+  a :: cs.apply_braidMoveSequence bms l = cs.apply_braidMoveSequence (List.map cs.shift_braidMove bms) (a :: l) := by
   induction bms with
     | nil =>
-       simp[apply_braidMove_sequence]
+       simp[apply_braidMoveSequence]
     | cons bm bms ih =>
-      rw[apply_braidMove_sequence]
+      rw[apply_braidMoveSequence]
       rw[List.foldr_cons bms]
       rw[cs.braidMove_cons bm]
-      rw[apply_braidMove_sequence] at ih
+      rw[apply_braidMoveSequence] at ih
       rw[ih]
-      simp[apply_braidMove_sequence_cons]
+      simp[apply_braidMoveSequence_cons]
 
 theorem isReduced_cons (a : B) (l : List B) : cs.IsReduced (a :: l) → cs.IsReduced l := by
   intro h
@@ -435,12 +435,12 @@ lemma prefix_braidWord (h_awords : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j),
   · exact htr
 
 theorem apply_braidMove_sequence_append (bms bms' : List (cs.BraidMove)) (l : List B) :
-  cs.apply_braidMove_sequence (bms ++ bms') l = cs.apply_braidMove_sequence bms (cs.apply_braidMove_sequence bms' l) := by
-  simp[apply_braidMove_sequence, List.foldr_append]
+  cs.apply_braidMoveSequence (bms ++ bms') l = cs.apply_braidMoveSequence bms (cs.apply_braidMoveSequence bms' l) := by
+  simp[apply_braidMoveSequence, List.foldr_append]
 
-theorem concatenate_braidMove_sequences (l l' l'' : List B) (h : ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l')
-  (h' : ∃ bms' : List (cs.BraidMove), cs.apply_braidMove_sequence bms' l' = l'') :
-  ∃ bms'' : List (cs.BraidMove), cs.apply_braidMove_sequence bms'' l = l'' := by
+theorem concatenate_braidMove_sequences (l l' l'' : List B) (h : ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l')
+  (h' : ∃ bms' : List (cs.BraidMove), cs.apply_braidMoveSequence bms' l' = l'') :
+  ∃ bms'' : List (cs.BraidMove), cs.apply_braidMoveSequence bms'' l = l'' := by
   rcases h with ⟨bms, hbms⟩
   rcases h' with ⟨bms', hbms'⟩
   use bms' ++ bms
@@ -462,7 +462,7 @@ theorem eq_length_of_isReduced (l l' : List B) (h_eq : π l = π l') (hr : cs.Is
 
 theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1) (p : ℕ) (l l' : List B) (len_l_eq_p : l.length = p) (len_l'_eq_p : l'.length = p)
 (l_reduced : cs.IsReduced l) (l'_reduced : cs.IsReduced l') (h_eq : π l = π l') :
-  ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
+  ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
 
   revert l l'
   induction p with
@@ -471,7 +471,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ 
     have h_len : l.length = l'.length := by rw[hl, hl']
     simp at h_len
     use []
-    simp[apply_braidMove_sequence]
+    simp[apply_braidMoveSequence]
     apply List.length_eq_zero.mp at hl
     apply List.length_eq_zero.mp at hl'
     rw[hl, hl']
@@ -563,14 +563,14 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ 
 
         use (List.map cs.shift_braidMove bms)
         rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMove_sequence bms i_tail = (alternatingWord j i m ++ b_tail) from by
+        suffices cs.apply_braidMoveSequence bms i_tail = (alternatingWord j i m ++ b_tail) from by
           rw[this]
         exact ih'
 
         apply cs.concatenate_braidMove_sequences (braidWord M j i ++ b_tail) (braidWord M i j ++ b_tail) (j :: j_tail)
 
         use [BraidMove.mk j i 0]
-        simp[apply_braidMove_sequence]
+        simp[apply_braidMoveSequence]
         simp[apply_braidMove]
 
         simp[braidWord]
@@ -629,7 +629,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ 
 
         use (List.map cs.shift_braidMove bms)
         rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMove_sequence bms (alternatingWord i j m ++ b_tail) = j_tail from by
+        suffices cs.apply_braidMoveSequence bms (alternatingWord i j m ++ b_tail) = j_tail from by
           rw[this]
         exact ih'
       · rcases cs.prefix_braidWord h_awords i_tail j_tail i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
@@ -677,14 +677,14 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ 
         use (List.map cs.shift_braidMove bms)
 
         rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMove_sequence bms i_tail = (alternatingWord i j m ++ b_tail) from by
+        suffices cs.apply_braidMoveSequence bms i_tail = (alternatingWord i j m ++ b_tail) from by
           rw[this]
         exact ih'
 
         apply cs.concatenate_braidMove_sequences (braidWord M i j ++ b_tail) (braidWord M j i ++ b_tail) (j :: j_tail)
 
         use [BraidMove.mk i j 0]
-        simp[apply_braidMove_sequence]
+        simp[apply_braidMoveSequence]
         simp[apply_braidMove]
 
         simp[braidWord]
@@ -743,13 +743,13 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j) (h_awords : ∀ 
 
         use (List.map cs.shift_braidMove bms)
         rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMove_sequence bms (alternatingWord j i m ++ b_tail) = j_tail from by
+        suffices cs.apply_braidMoveSequence bms (alternatingWord j i m ++ b_tail) = j_tail from by
           rw[this]
         exact ih'
 
 
 theorem matsumoto_reduced (h_awords : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1) (hm : ∀ (i j : B), 1 ≤ M i j) (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
-  ∃ bms : List (cs.BraidMove), cs.apply_braidMove_sequence bms l = l' := by
+  ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
   apply cs.matsumoto_reduced_aux hm h_awords (l.length) l l' rfl _ hr hr' h
   calc
       l'.length = ℓ (π l') := by
