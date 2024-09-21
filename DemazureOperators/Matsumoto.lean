@@ -116,7 +116,9 @@ def apply_coxeterMove_sequence (cms : List (cs.CoxeterMove)) (l : List B) : List
 example (nm : cs.NilMove) : cs.CoxeterMove := CoxeterMove.nil nm
 
 def apply_braidMoveSequence (bms : List (cs.BraidMove)) (l : List B) : List B :=
-  List.foldr (cs.apply_braidMove) l bms
+  match bms with
+  | [] => l
+  | bm :: bms' => cs.apply_braidMove bm (apply_braidMoveSequence bms' l)
 
 lemma apply_braidMoveSequence_cons (bm : cs.BraidMove) (bms : List (cs.BraidMove)) (l : List B) :
   cs.apply_braidMoveSequence (bm :: bms) l = cs.apply_braidMove bm (cs.apply_braidMoveSequence bms l) := by
@@ -147,9 +149,8 @@ lemma braidMoveSequence_cons (bms : List (cs.BraidMove)) (l : List B) (a : B) :
        simp[apply_braidMoveSequence]
     | cons bm bms ih =>
       rw[apply_braidMoveSequence]
-      rw[List.foldr_cons bms]
       rw[cs.braidMove_cons bm]
-      rw[apply_braidMoveSequence] at ih
+      simp[apply_braidMoveSequence] at ih
       rw[ih]
       simp[apply_braidMoveSequence_cons]
 
@@ -436,7 +437,13 @@ lemma prefix_braidWord (h_awords : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j),
 
 theorem apply_braidMove_sequence_append (bms bms' : List (cs.BraidMove)) (l : List B) :
   cs.apply_braidMoveSequence (bms ++ bms') l = cs.apply_braidMoveSequence bms (cs.apply_braidMoveSequence bms' l) := by
-  simp[apply_braidMoveSequence, List.foldr_append]
+  induction bms with
+  | nil =>
+    simp[apply_braidMoveSequence]
+  | cons bm bms ih =>
+    simp[apply_braidMoveSequence]
+    apply congr_arg
+    exact ih
 
 theorem concatenate_braidMove_sequences (l l' l'' : List B) (h : ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l')
   (h' : ∃ bms' : List (cs.BraidMove), cs.apply_braidMoveSequence bms' l' = l'') :
