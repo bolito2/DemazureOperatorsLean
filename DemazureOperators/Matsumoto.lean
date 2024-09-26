@@ -11,7 +11,7 @@ variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
-local prefix:100 "ℓ" => cs.length
+local prefix:100 "len" => cs.length
 
 -- assume the coxeter system has some properties --
 variable (hm : ∀ (i j : B), 1 ≤ M i j) -- finite (non-zero) indexes in the matrix
@@ -759,10 +759,10 @@ theorem matsumoto_reduced (h_awords : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i 
   ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
   apply cs.matsumoto_reduced_aux hm h_awords (l.length) l l' rfl _ hr hr' h
   calc
-      l'.length = ℓ (π l') := by
+      l'.length = len (π l') := by
         rw[IsReduced] at hr'
         rw[← hr']
-      _ = ℓ (π l) := by rw[h]
+      _ = len (π l) := by rw[h]
       _ = l.length := by
         rw[IsReduced] at hr
         rw[← hr]

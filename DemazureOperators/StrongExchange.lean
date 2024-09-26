@@ -12,7 +12,7 @@ variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
-local prefix:100 "ℓ" => cs.length
+local prefix:100 "len" => cs.length
 
 def T : Type := {t : W // IsReflection cs t}
 
