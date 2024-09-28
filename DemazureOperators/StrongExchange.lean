@@ -16,8 +16,8 @@ local prefix:100 "len" => cs.length
 
 def T : Type := {t : W // IsReflection cs t}
 
-def nReflectionOccurrences (w : List B) (t : T cs) : ℕ :=
-  (cs.leftInvSeq w).count t.1
+def nReflectionOccurrences (l : List B) (t : T cs) : ℕ :=
+  (cs.leftInvSeq l).count t.1
 
 def parityReflectionOccurrences (w : List B) (t : T cs) : ZMod 2 :=
   (nReflectionOccurrences cs w t : ZMod 2)
@@ -28,11 +28,11 @@ def conj (t : T cs) (w : W) : T cs :=
 lemma t_eq_conj_t (t : T cs) : t = conj cs t t.1 := by
   simp [conj]
 
-def nu (i : B) (t : T cs) : ZMod 2 :=
+def eta (i : B) (t : T cs) : ZMod 2 :=
   if (s i = t.1) then 1 else 0
 
-def nu_simpleConj_eq_nu (i : B) (t : T cs) : nu cs i t = nu cs i (conj cs t (s i)) := by
-  simp [nu]
+def eta_simpleConj_eq_eta (i : B) (t : T cs) : eta cs i t = eta cs i (conj cs t (s i)) := by
+  simp [eta]
   rcases t with ⟨t, ht⟩
   have : s i = t ↔ s i * t = 1 := by
     constructor
@@ -49,14 +49,14 @@ def nu_simpleConj_eq_nu (i : B) (t : T cs) : nu cs i t = nu cs i (conj cs t (s i
   · simp [this, h, if_neg, conj]
 
 def permutationMap (i : B) : T cs × ZMod 2 → T cs × ZMod 2 :=
-  fun (t , z) => (conj cs t (s i), z + nu cs i t)
+  fun (t , z) => (conj cs t (s i), z + eta cs i t)
 
 def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
   funext ⟨t, z⟩
   simp [permutationMap]
   constructor
   · simp[conj, mul_assoc]
-  · rw [← nu_simpleConj_eq_nu cs i t]
+  · rw [← eta_simpleConj_eq_eta cs i t]
     ring_nf
     simp
     right
@@ -76,7 +76,7 @@ lemma Odd.add_one : Odd n → Even (n + 1) := by
   simp at contra1
 
 lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
-  (alternatingWord i j p)[k] =  (if Even (p + k) then i else j) := by
+  (alternatingWord i j p)[k] = (if Even (p + k) then i else j) := by
   induction p with
   | zero =>
     rcases k with ⟨k, hk⟩
@@ -99,12 +99,11 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j
           exact Odd.add_one h2
         simp [h2, this]
     | succ k _ =>
-      simp only [List.getElem_cons_succ]
       have : k < (alternatingWord i j n).length := by
         simp
         simp at hk
         exact hk
-      simp
+      simp[List.getElem_cons_succ]
       simp at h
       rw[h ⟨k, this⟩ ]
       simp
@@ -486,11 +485,11 @@ lemma permutationMap_ofList_mk_2 (l : List B) :
     rw[leftInvSeq_concat]
     simp [List.count_singleton]
 
-    suffices nu cs i (permutationMap_ofList cs l (t, z)).1 = if (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1 then 1 else 0 from by
+    suffices eta cs i (permutationMap_ofList cs l (t, z)).1 = if (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1 then 1 else 0 from by
       rw[this]
       simp[add_assoc]
 
-    simp[nu, permutationMap_ofList_mk_1]
+    simp[eta, permutationMap_ofList_mk_1]
     by_cases h' : (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1
     · simp[h']
       rw[← h']
@@ -661,7 +660,7 @@ lemma permutationMap_lift_of_reflection (t : T cs) : ∀ (z : ZMod 2),
 
   induction l with
   | nil =>
-    simp[permutationMap_lift, permutationMap_ofList, permutationMap, nReflectionOccurrences, conj, nu]
+    simp[permutationMap_lift, permutationMap_ofList, permutationMap, nReflectionOccurrences, conj, eta]
   | cons i l h =>
     intro z
     simp_rw[wordProd_cons cs i l]
@@ -677,11 +676,11 @@ lemma permutationMap_lift_of_reflection (t : T cs) : ∀ (z : ZMod 2),
       convert_to IsReflection cs (cs.simple i * (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) * (cs.simple i)⁻¹)
       simp[inv_simple, mul_assoc]
       exact IsReflection.conj this (s i)
-    rw[h (isReflection_simple cs p) (z + nu cs i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
+    rw[h (isReflection_simple cs p) (z + eta cs i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
     simp[permutationMap, conj]
     constructor
     · simp[mul_assoc]
-    · simp[nu, add_assoc]
+    · simp[eta, add_assoc]
       by_cases h': cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ = 1
       · simp[h']
         have : cs.simple i = cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ := by
