@@ -31,7 +31,7 @@ lemma t_eq_conj_t (t : cs.T) : t = cs.conj t t.1 := by
 def eta (i : B) (t : cs.T) : ZMod 2 :=
   if (s i = t.1) then 1 else 0
 
-def eta_simpleConj_eq_eta (i : B) (t : cs.T) : eta cs i t = eta cs i (cs.conj t (s i)) := by
+lemma eta_simpleConj_eq_eta (i : B) (t : cs.T) : eta cs i t = eta cs i (cs.conj t (s i)) := by
   simp [eta]
   rcases t with ⟨t, ht⟩
   have : s i = t ↔ s i * t = 1 := by
