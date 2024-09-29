@@ -454,8 +454,9 @@ lemma IsReflection.conj' (ht : cs.IsReflection t) (w : W) :
   nth_rewrite 2 [this]
   apply IsReflection.conj ht w⁻¹
 
-lemma permutationMap_ofList_mk_1 (l : List B) : (permutationMap_ofList cs l ⟨t,z⟩).1 =
-  ⟨(cs.wordProd l) * t.1 * (cs.wordProd l)⁻¹, IsReflection.conj t.2 (cs.wordProd l)⟩ := by
+lemma permutationMap_ofList_mk_1 (l : List B) :
+  (permutationMap_ofList cs l ⟨t,z⟩).1 = cs.conj t (π l) := by
+  simp[conj]
   induction l with
   | nil =>
     simp[permutationMap_ofList, permutationMap, nReflectionOccurrences]
@@ -484,7 +485,7 @@ lemma permutationMap_ofList_mk_2 (l : List B) :
       rw[this]
       simp[add_assoc]
 
-    simp[eta, permutationMap_ofList_mk_1]
+    simp[eta, permutationMap_ofList_mk_1, conj]
     by_cases h' : (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1
     · simp[h']
       rw[← h']
@@ -495,7 +496,7 @@ lemma permutationMap_ofList_mk_2 (l : List B) :
       simp[mul_assoc] at h'
 
 lemma permutationMap_ofList_mk (l : List B) (t : cs.T) (z : ZMod 2) :
-  (permutationMap_ofList cs l ⟨t,z⟩) = ⟨⟨(cs.wordProd l) * t.1 * (cs.wordProd l)⁻¹, IsReflection.conj t.2 (cs.wordProd l)⟩,
+  (permutationMap_ofList cs l ⟨t,z⟩) = ⟨cs.conj t (π l),
    z + parityReflectionOccurrences cs l.reverse t⟩ := by
   rw[← permutationMap_ofList_mk_1, ← permutationMap_ofList_mk_2]
 
@@ -525,7 +526,7 @@ theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
   funext ⟨t, z⟩
   convert_to permutationMap_ofList cs (alternatingWord i j (2 * M.M i j)) (t, z) = ⟨t,z⟩
 
-  simp[permutationMap_ofList_mk]
+  simp[permutationMap_ofList_mk, conj]
   constructor
   · simp[cs.prod_alternatingWord_eq_mul_pow]
   · rw[alternatingWord_reverse]
@@ -569,7 +570,7 @@ theorem permutationMap_lift_mk (w : W) (t : cs.T) (z : ZMod 2) :
   permutationMap_lift cs w ⟨t,z⟩ = ⟨⟨w * t.1 * w⁻¹, IsReflection.conj t.2 w⟩ , z + parityReflectionOccurrences_lift cs w⁻¹ t⟩ := by
   obtain ⟨l, _, rfl⟩ := cs.exists_reduced_word' w
   apply Prod.ext
-  · simp[permutationMap_lift_mk_ofList, permutationMap_ofList_mk]
+  · simp[permutationMap_lift_mk_ofList, permutationMap_ofList_mk, conj]
   · simp[parityReflectionOccurrences_lift]
     rw[permutationMap_lift_mk_ofList cs l t 0]
     rw[permutationMap_lift_mk_ofList cs l t z]
