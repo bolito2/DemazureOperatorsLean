@@ -62,11 +62,6 @@ def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs 
     right
     rfl
 
-def funComp (f : α → α) (n : ℕ) : α → α :=
-  match n with
-  | 0 => id
-  | n + 1 => f ∘ funComp f n
-
 lemma Odd.add_one : Odd n → Even (n + 1) := by
   intro h2
   by_contra h3
