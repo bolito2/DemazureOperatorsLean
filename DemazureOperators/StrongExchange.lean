@@ -51,7 +51,7 @@ lemma eta_simpleConj_eq_eta (i : B) (t : cs.T) : eta cs i t = eta cs i (cs.conj 
 def permutationMap (i : B) : cs.T × ZMod 2 → cs.T × ZMod 2 :=
   fun (t , z) => (cs.conj t (s i), z + eta cs i t)
 
-def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
+theorem permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
   funext ⟨t, z⟩
   simp [permutationMap]
   constructor
