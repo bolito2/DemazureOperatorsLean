@@ -25,13 +25,13 @@ def parityReflectionOccurrences (w : List B) (t : T cs) : ZMod 2 :=
 def conj (t : T cs) (w : W) : T cs :=
   ⟨w * t.1 * w⁻¹, IsReflection.conj t.2 w⟩
 
-lemma t_eq_conj_t (t : T cs) : t = conj cs t t.1 := by
+lemma t_eq_conj_t (t : T cs) : t = cs.conj t t.1 := by
   simp [conj]
 
 def eta (i : B) (t : T cs) : ZMod 2 :=
   if (s i = t.1) then 1 else 0
 
-def eta_simpleConj_eq_eta (i : B) (t : T cs) : eta cs i t = eta cs i (conj cs t (s i)) := by
+def eta_simpleConj_eq_eta (i : B) (t : T cs) : eta cs i t = eta cs i (cs.conj t (s i)) := by
   simp [eta]
   rcases t with ⟨t, ht⟩
   have : s i = t ↔ s i * t = 1 := by
@@ -49,7 +49,7 @@ def eta_simpleConj_eq_eta (i : B) (t : T cs) : eta cs i t = eta cs i (conj cs t 
   · simp [this, h, if_neg, conj]
 
 def permutationMap (i : B) : T cs × ZMod 2 → T cs × ZMod 2 :=
-  fun (t , z) => (conj cs t (s i), z + eta cs i t)
+  fun (t , z) => (cs.conj t (s i), z + eta cs i t)
 
 def permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
   funext ⟨t, z⟩
@@ -717,7 +717,7 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
       linarith
 
     apply isLeftInversion_of_parityReflectionOccurrences_lift_eq_one cs (t.1 * π l) t
-    suffices permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = ⟨conj cs t (π l)⁻¹, 1⟩ from by
+    suffices permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = ⟨cs.conj t (π l)⁻¹, 1⟩ from by
       rw[permutationMap_lift_mk cs (t.1 * π l)⁻¹ t 0] at this
       simp at this
       simp[this.2]
@@ -729,9 +729,9 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : T
       _ = permutationMap_lift cs (π l)⁻¹ ⟨t, 1⟩ := by
           rw[permutationMap_lift_of_reflection cs t 0]
           simp[permutationMap_lift_mk]
-      _ = ⟨conj cs t (π l)⁻¹, 1 + parityReflectionOccurrences_lift cs (π l) t⟩ := by
+      _ = ⟨cs.conj t (π l)⁻¹, 1 + parityReflectionOccurrences_lift cs (π l) t⟩ := by
         simp[permutationMap_lift_mk, conj]
-      _ = (conj cs t (cs.wordProd l)⁻¹, 1) := by
+      _ = (cs.conj t (cs.wordProd l)⁻¹, 1) := by
         simp
         simp[parityReflectionOccurrences_lift_mk, h'']
 
