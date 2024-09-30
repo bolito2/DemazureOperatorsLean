@@ -31,7 +31,7 @@ lemma t_eq_conj_t (t : cs.T) : t = cs.conj t t.1 := by
 def eta (i : B) (t : cs.T) : ZMod 2 :=
   if (s i = t.1) then 1 else 0
 
-lemma eta_simpleConj_eq_eta (i : B) (t : cs.T) : eta cs i t = eta cs i (cs.conj t (s i)) := by
+lemma eta_simpleConj_eq_eta (i : B) (t : cs.T) : cs.eta i t = cs.eta i (cs.conj t (s i)) := by
   simp [eta]
   rcases t with ⟨t, ht⟩
   have : s i = t ↔ s i * t = 1 := by
@@ -49,14 +49,14 @@ lemma eta_simpleConj_eq_eta (i : B) (t : cs.T) : eta cs i t = eta cs i (cs.conj 
   · simp [this, h, if_neg, conj]
 
 def permutationMap (i : B) : cs.T × ZMod 2 → cs.T × ZMod 2 :=
-  fun (t , z) => (cs.conj t (s i), z + eta cs i t)
+  fun (t , z) => (cs.conj t (s i), z + cs.eta i t)
 
-theorem permutationMap_orderTwo (i : B) : permutationMap cs i ∘ permutationMap cs i = id := by
+theorem permutationMap_orderTwo (i : B) : cs.permutationMap i ∘ cs.permutationMap i = id := by
   funext ⟨t, z⟩
   simp [permutationMap]
   constructor
   · simp[conj, mul_assoc]
-  · rw [← eta_simpleConj_eq_eta cs i t]
+  · rw [← cs.eta_simpleConj_eq_eta i t]
     ring_nf
     simp
     right
@@ -446,7 +446,7 @@ instance : Monoid (cs.T × ZMod 2 → cs.T × ZMod 2) where
 def permutationMap_ofList (l : List B) : cs.T × ZMod 2 → cs.T × ZMod 2 :=
   match l with
   | [] => id
-  | a :: t => permutationMap cs a * permutationMap_ofList t
+  | a :: t => cs.permutationMap a * permutationMap_ofList t
 
 lemma IsReflection.conj' (ht : cs.IsReflection t) (w : W) :
   cs.IsReflection (w⁻¹ * t * w) := by
@@ -461,12 +461,11 @@ lemma permutationMap_ofList_mk_1 (l : List B) :
   | nil =>
     simp[permutationMap_ofList, permutationMap, nReflectionOccurrences]
   | cons a l h =>
-    calc (permutationMap_ofList cs (a :: l) (t, z)).1 = ((permutationMap cs a * permutationMap_ofList cs l) (t, z)).1 := by simp[permutationMap_ofList]
-      _ = (permutationMap cs a (permutationMap_ofList cs l (t, z))).1 := by rfl
+    calc (permutationMap_ofList cs (a :: l) (t, z)).1 = ((cs.permutationMap a * permutationMap_ofList cs l) (t, z)).1 := by simp[permutationMap_ofList]
+      _ = (cs.permutationMap a (permutationMap_ofList cs l (t, z))).1 := by rfl
 
     simp[permutationMap, conj, h]
-    simp[cs.wordProd_cons]
-    simp[mul_assoc]
+    simp[cs.wordProd_cons, mul_assoc]
 
 lemma permutationMap_ofList_mk_2 (l : List B) :
  (permutationMap_ofList cs l ⟨t,z⟩).2 = z + parityReflectionOccurrences cs l.reverse t := by
@@ -481,7 +480,7 @@ lemma permutationMap_ofList_mk_2 (l : List B) :
     rw[leftInvSeq_concat]
     simp [List.count_singleton]
 
-    suffices eta cs i (permutationMap_ofList cs l (t, z)).1 = if (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1 then 1 else 0 from by
+    suffices cs.eta i (permutationMap_ofList cs l (t, z)).1 = if (cs.wordProd l)⁻¹ * cs.simple i * cs.wordProd l = t.1 then 1 else 0 from by
       rw[this]
       simp[add_assoc]
 
@@ -500,10 +499,10 @@ lemma permutationMap_ofList_mk (l : List B) (t : cs.T) (z : ZMod 2) :
    z + parityReflectionOccurrences cs l.reverse t⟩ := by
   rw[← permutationMap_ofList_mk_1, ← permutationMap_ofList_mk_2]
 
-theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
+theorem permutationMap_isLiftable : M.IsLiftable (cs.permutationMap) := by
   intro i j
 
-  have h (p : ℕ) : (permutationMap cs i * permutationMap cs j) ^ p = permutationMap_ofList cs (alternatingWord i j (2 * p)) := by
+  have h (p : ℕ) : (cs.permutationMap i * cs.permutationMap j) ^ p = permutationMap_ofList cs (alternatingWord i j (2 * p)) := by
     induction p with
     | zero =>
       simp[permutationMap_ofList, permutationMap, permutationMap_orderTwo]
@@ -534,7 +533,7 @@ theorem permutationMap_isLiftable : M.IsLiftable (permutationMap cs) := by
     exact parityReflectionOccurrences_braidWord cs t
 
 def permutationMap_lift : W →* cs.T × ZMod 2 → cs.T × ZMod 2 :=
-  cs.lift ⟨permutationMap cs, permutationMap_isLiftable cs⟩
+  cs.lift ⟨cs.permutationMap, permutationMap_isLiftable cs⟩
 
 theorem permutationMap_lift_mk_ofList (l : List B) (t : cs.T) (z : ZMod 2) :
   permutationMap_lift cs (cs.wordProd l) ⟨t,z⟩ = permutationMap_ofList cs l ⟨t,z⟩ := by
@@ -580,14 +579,10 @@ theorem permutationMap_lift_mk (w : W) (t : cs.T) (z : ZMod 2) :
 theorem parityReflectionOccurrences_ext (l l' : List B) (t : cs.T) (h : π l = π l') :
   parityReflectionOccurrences cs l t = parityReflectionOccurrences cs l' t := by
 
-  suffices permutationMap_ofList cs l.reverse ⟨t,0⟩ = permutationMap_ofList cs l'.reverse ⟨t,0⟩ from by
-    rw[permutationMap_ofList_mk cs l.reverse t 0] at this
-    rw[permutationMap_ofList_mk cs l'.reverse t 0] at this
-    simp at this
-    exact this.2
-
-  apply permutationMap_ext cs l.reverse l'.reverse t 0
-  simp[h]
+  calc
+    parityReflectionOccurrences cs l t = parityReflectionOccurrences_lift cs (cs.wordProd l) t := by rw[parityReflectionOccurrences_lift_mk]
+    _ = parityReflectionOccurrences_lift cs (cs.wordProd l') t := by rw[h]
+    _ = parityReflectionOccurrences cs l' t := by rw[parityReflectionOccurrences_lift_mk]
 
 lemma odd_iff_parity_eq_one (n : ℕ) : Odd n ↔ (n : ZMod 2) = 1 := by
   simp [ZMod.eq_one_iff_odd]
@@ -644,7 +639,7 @@ lemma isLeftInversion_of_parityReflectionOccurrences_lift_eq_one (w : W) (t : cs
   apply isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t h
 
 lemma permutationMap_lift_simple (p : B):
-  permutationMap_lift cs (cs.simple p) = permutationMap cs p := by
+  permutationMap_lift cs (cs.simple p) = cs.permutationMap p := by
   simp[permutationMap_lift]
 
 lemma permutationMap_lift_of_reflection (t : cs.T) : ∀ (z : ZMod 2),
@@ -672,7 +667,7 @@ lemma permutationMap_lift_of_reflection (t : cs.T) : ∀ (z : ZMod 2),
       convert_to IsReflection cs (cs.simple i * (cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹) * (cs.simple i)⁻¹)
       simp[inv_simple, mul_assoc]
       exact IsReflection.conj this (s i)
-    rw[h (isReflection_simple cs p) (z + eta cs i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
+    rw[h (isReflection_simple cs p) (z + cs.eta i ⟨cs.simple i * cs.wordProd l * cs.simple p * (cs.wordProd l)⁻¹ * cs.simple i, this⟩)]
     simp[permutationMap, conj]
     constructor
     · simp[mul_assoc]
