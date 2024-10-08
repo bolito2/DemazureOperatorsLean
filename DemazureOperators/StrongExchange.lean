@@ -604,32 +604,16 @@ lemma isInLeftInvSeq_of_parityReflectionOccurrences_eq_one (l : List B) (t : cs.
 
   exact h
 
-lemma eraseIdx_of_mul_leftInvSeq (l : List B) (t : cs.T) (h : t.1 ∈ cs.leftInvSeq l) :
-  ∃ (i : Fin l.length), t.1 * π l = π (l.eraseIdx i) := by
-    have : ∃ (i : Fin (cs.leftInvSeq l).length), (cs.leftInvSeq l).get i = t.1 := List.get_of_mem h
-    rcases this with ⟨i, hi⟩
-    use ⟨i, by rw[← length_leftInvSeq cs l] ; exact i.2⟩
-    rw[← hi]
-    rw[← getD_leftInvSeq_mul_wordProd cs l i]
-    simp
-    rw[← List.get?_eq_getElem?]
-    rw [List.get?_eq_get i.2]
-    simp
-
 lemma isLeftInversion_of_parityReflectionOccurrences_eq_one (l : List B) (t : cs.T) :
   parityReflectionOccurrences cs l t = 1 → cs.IsLeftInversion (cs.wordProd l) t.1 := by
   intro h
+
   rcases cs.exists_reduced_word' (π l) with ⟨u, u_reduced, hu⟩
+  rw[hu]
+  apply cs.isLeftInversion_of_mem_leftInvSeq u_reduced
 
-  rw [hu]
-  have h' : parityReflectionOccurrences cs u t = 1 := by
-    rw[← h]
-    rw [← parityReflectionOccurrences_ext cs u l t]
-    simp[hu]
-
-  apply isLeftInversion_of_mem_leftInvSeq
-  exact u_reduced
-  exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs u t h'
+  rw[cs.parityReflectionOccurrences_ext l u t hu] at h
+  exact isInLeftInvSeq_of_parityReflectionOccurrences_eq_one cs u t h
 
 lemma isLeftInversion_of_parityReflectionOccurrences_lift_eq_one (w : W) (t : cs.T) :
   parityReflectionOccurrences_lift cs w t = 1 → cs.IsLeftInversion w t.1 := by
@@ -637,6 +621,18 @@ lemma isLeftInversion_of_parityReflectionOccurrences_lift_eq_one (w : W) (t : cs
   obtain ⟨l, _, rfl⟩ := cs.exists_reduced_word' w
   simp[parityReflectionOccurrences_lift_mk] at h
   apply isLeftInversion_of_parityReflectionOccurrences_eq_one cs l t h
+
+lemma eraseIdx_of_mul_leftInvSeq (l : List B) (t : cs.T) (h : t.1 ∈ cs.leftInvSeq l) :
+  ∃ (k : Fin l.length), t.1 * π l = π (l.eraseIdx k) := by
+    have : ∃ (k : Fin (cs.leftInvSeq l).length), (cs.leftInvSeq l).get k = t.1 := List.get_of_mem h
+    rcases this with ⟨k, hk⟩
+    use ⟨k, by rw[← length_leftInvSeq cs l] ; exact k.2⟩
+    rw[← hk]
+    rw[← getD_leftInvSeq_mul_wordProd cs l k]
+    simp
+    rw[← List.get?_eq_getElem?]
+    rw [List.get?_eq_get k.2]
+    simp
 
 lemma permutationMap_lift_simple (p : B):
   permutationMap_lift cs (cs.simple p) = cs.permutationMap p := by
@@ -707,8 +703,8 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : c
       simp[IsLeftInversion] at h
       linarith
 
-    apply isLeftInversion_of_parityReflectionOccurrences_lift_eq_one cs (t.1 * π l) t
     suffices permutationMap_lift cs (t.1 * π l)⁻¹ ⟨t, 0⟩ = ⟨cs.conj t (π l)⁻¹, 1⟩ from by
+      apply isLeftInversion_of_parityReflectionOccurrences_lift_eq_one cs (t.1 * π l) t
       rw[permutationMap_lift_mk cs (t.1 * π l)⁻¹ t 0] at this
       simp at this
       simp[this.2]
@@ -730,8 +726,8 @@ lemma isLeftInversion_iff_parityReflectionOccurrences_eq_one (l : List B) (t : c
 
 
 theorem strongExchangeProperty (l : List B) (t : cs.T)
- (h' : cs.IsLeftInversion (cs.wordProd l) t.1) :
-  ∃ (i : Fin l.length), t.1 * π l = π (l.eraseIdx i) := by
+(h' : cs.IsLeftInversion (cs.wordProd l) t.1) :
+  ∃ (k : Fin l.length), t.1 * π l = π (l.eraseIdx k) := by
 
   suffices t.1 ∈ cs.leftInvSeq l from eraseIdx_of_mul_leftInvSeq cs l t this
 
