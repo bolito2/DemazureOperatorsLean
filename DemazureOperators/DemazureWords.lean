@@ -14,9 +14,10 @@ def W := (@M n).Group
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
-local prefix:100 "ℓ" => cs.length
+local prefix:100 "len" => cs.length
 
 instance : DecidableEq (@M n).Group := by sorry
+instance : Group (@W n) := CoxeterMatrix.instGroupGroup M
 
 lemma one_le_M : ∀ i j : Fin n, 1 ≤ M i j := by
   intro i j
@@ -184,3 +185,7 @@ theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π
 
 def DemazureOfProd (w : @W n) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
   DemazureOfWord (Classical.choose (cs.exists_reduced_word' w))
+
+theorem demazureOfProd_append (w w' : @W n) : DemazureOfProd (w * w') =
+  if (len (w * w') = len w + len w') then LinearMap.comp (DemazureOfProd w) (DemazureOfProd w')
+  else 0 := by sorry
