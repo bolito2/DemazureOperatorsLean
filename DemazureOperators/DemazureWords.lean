@@ -10,6 +10,7 @@ noncomputable section
 variable {n : ℕ}
 def M := CoxeterMatrix.Aₙ n
 def cs := (@M n).toCoxeterSystem
+def W := (@M n).Group
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
@@ -180,3 +181,6 @@ theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π
     exact demazure_of_braidMoveSequence l bms
 
   exact cs.matsumoto_reduced sorry sorry l l' hr hr' h_eq
+
+def DemazureOfProd (w : @W n) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
+  DemazureOfWord (Classical.choose (cs.exists_reduced_word' w))

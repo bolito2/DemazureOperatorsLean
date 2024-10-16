@@ -579,26 +579,9 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
           rw[← cs.eq_length_of_isReduced (i :: l_t) (braidWord M j i ++ b_tail) hb' l_reduced b_reduced]
           exact len_l_eq_p
 
-        have i_tail_reduced : cs.IsReduced l_t := by
-          apply cs.isReduced_cons i l_t l_reduced
-
-        have aword_is_reduced : cs.IsReduced (alternatingWord j i m ++ b_tail) := by
-          apply cs.isReduced_cons i ((alternatingWord j i m) ++ b_tail)
-          rw[← b_word_cons]
-          exact b_reduced
-
-        have i_tail_eq_aword : π l_t = π (alternatingWord j i m ++ b_tail) := by
-          rw[b_word_cons] at hb'
-          simp[wordProd_cons] at hb'
-          exact hb'
-
-        rcases ih l_t (alternatingWord j i m ++ b_tail) len_l_t_eq_p b_len_p i_tail_reduced aword_is_reduced i_tail_eq_aword with ⟨bms, ih'⟩
-
-        use (List.map cs.shift_braidMove bms)
-        rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMoveSequence bms l_t = (alternatingWord j i m ++ b_tail) from by
-          rw[this]
-        exact ih'
+        rw[b_word_cons] at hb'
+        rw[b_word_cons] at b_reduced
+        apply cs.matsumoto_reduced_inductionStep_of_firstLetterEq p l_t (alternatingWord j i m ++ b_tail) i len_l_t_eq_p b_len_p hb' l_reduced b_reduced ih
 
         apply cs.concatenate_braidMove_sequences (braidWord M j i ++ b_tail) (braidWord M i j ++ b_tail) (j :: l'_t)
 
@@ -645,26 +628,12 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
           rw[← cs.eq_length_of_isReduced (j :: l'_t) (braidWord M i j ++ b_tail) hb' l'_reduced b_reduced']
           exact len_l'_eq_p
 
-        have j_tail_reduced : cs.IsReduced l'_t := by
-          apply cs.isReduced_cons j l'_t l'_reduced
+        rw[b_word_cons] at hb'
+        rw[b_word_cons] at b_reduced'
 
-        have aword_is_reduced : cs.IsReduced (alternatingWord i j m ++ b_tail) := by
-          apply cs.isReduced_cons j ((alternatingWord i j m) ++ b_tail)
-          rw[← b_word_cons]
-          exact b_reduced'
-
-        have j_tail_eq_aword : π (alternatingWord i j m ++ b_tail) = π l'_t := by
-          rw[b_word_cons] at hb'
-          simp[wordProd_cons] at hb'
-          exact Eq.symm hb'
-
-        rcases ih (alternatingWord i j m ++ b_tail) l'_t b_len_p len_l'_t_eq_p aword_is_reduced j_tail_reduced j_tail_eq_aword with ⟨bms, ih'⟩
-
-        use (List.map cs.shift_braidMove bms)
-        rw[← braidMoveSequence_cons]
-        suffices cs.apply_braidMoveSequence bms (alternatingWord i j m ++ b_tail) = l'_t from by
-          rw[this]
-        exact ih'
+        apply cs.matsumoto_reduced_inductionStep_of_firstLetterEq p (alternatingWord i j m ++ b_tail)
+          l'_t j b_len_p len_l'_t_eq_p (Eq.symm hb') b_reduced' l'_reduced ih
+          
       · rcases cs.prefix_braidWord ha l_t l'_t i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
         apply cs.concatenate_braidMove_sequences (i :: l_t) (braidWord M i j ++ b_tail) (j :: l'_t)
 
