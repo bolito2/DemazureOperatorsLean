@@ -18,7 +18,7 @@ local prefix:100 "len" => cs.length
 
 class MatsumotoReady where
   one_le_M : ∀ i j : B, 1 ≤ M i j
-  alternatingWords_ne_one : ∀ (i j : B) (_ : i ≠ j) (p : ℕ) (_ : p < 2 * M i j), (s i * s j) ^ p ≠ 1
+  alternatingWords_ne_one : ∀ (i j : B) (_ : i ≠ j) (p : ℕ) (_ : p < M i j), (s i * s j) ^ p ≠ 1
 
 structure NilMove (cs : CoxeterSystem M W) where
   i : B
