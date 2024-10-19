@@ -67,7 +67,7 @@ lemma cycle_of_adjacent_swap (i j : Fin n) (hij : i ≠ j) (h1 : j.succ = i.cast
 
 
 
-instance : MatsumotoReady (S_cox n) where
+instance instOfMatsumotoReady : MatsumotoReady (S_cox n) where
   one_le_M := by
     intro i j
     simp[M, CoxeterMatrix.Aₙ]

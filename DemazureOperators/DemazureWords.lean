@@ -1,6 +1,7 @@
 import DemazureOperators.DemazureRelations
 import DemazureOperators.Matsumoto
 import DemazureOperators.Demazure
+import DemazureOperators.SymmetricGroup
 
 import Mathlib.Data.Int.Range
 
@@ -8,17 +9,15 @@ open Demazure CoxeterSystem
 noncomputable section
 
 variable {n : ℕ}
-def M := CoxeterMatrix.Aₙ n
-def cs := (@M n).toCoxeterSystem
-def W := (@M n).Group
+def Symm := CoxeterSystem.S_cox n
 
-local prefix:100 "s" => cs.simple
-local prefix:100 "π" => cs.wordProd
-local prefix:100 "len" => cs.length
+instance : MatsumotoReady (@Symm n) := instOfMatsumotoReady n
 
-instance : Group (@W n) := CoxeterMatrix.instGroupGroup M
+local prefix:100 "s" => Symm.simple
+local prefix:100 "π" => Symm.wordProd
+local prefix:100 "len" => Symm.length
 
-lemma one_le_M : ∀ i j : Fin n, 1 ≤ M i j := by
+lemma one_le_M : ∀ i j : Fin n, 1 ≤ M n i j := by
   intro i j
   simp[M, CoxeterMatrix.Aₙ]
   by_cases h1 : i = j
@@ -26,13 +25,13 @@ lemma one_le_M : ∀ i j : Fin n, 1 ≤ M i j := by
     by_cases h2 : j.val + 1 = i.val ∨ i.val + 1 = j
     repeat simp [h1, h2]
 
-lemma braidWord_ne_nil : ∀ (i j : Fin n), braidWord M i j ≠ [] := by
+lemma braidWord_ne_nil : ∀ (i j : Fin n), braidWord (M n) i j ≠ [] := by
   intro i j
   simp[braidWord]
-  suffices M i j ≠ 0 from by
+  suffices M n i j ≠ 0 from by
     intro h
     apply this
-    rw[← length_alternatingWord i j (M i j)]
+    rw[← length_alternatingWord i j (M n i j)]
     exact List.length_eq_zero.mpr h
 
   have h := one_le_M i j
@@ -48,8 +47,8 @@ lemma demazureOfWord_append (l l' : List (Fin n)) : DemazureOfWord (l ++ l') = L
   | nil => simp[DemazureOfWord]
   | cons i l ih => simp[DemazureOfWord, ih, LinearMap.comp_assoc]
 
-theorem demazure_of_braidMove (l : List (Fin n)) (bm : cs.BraidMove) :
-DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
+theorem demazure_of_braidMove (l : List (Fin n)) (bm : Symm.BraidMove) :
+DemazureOfWord l = DemazureOfWord (Symm.apply_braidMove bm l) := by
   revert bm
   induction l with
   | nil =>
@@ -68,12 +67,12 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
     match p with
     | 0 =>
       simp[apply_braidMove]
-      by_cases h : List.take (M.M i j) (i' :: l) = braidWord M i j
+      by_cases h : List.take (M n i j) (i' :: l) = braidWord (M n) i j
       · simp[h]
-        nth_rewrite 1 [← List.take_append_drop (M.M i j) (i' :: l)]
+        nth_rewrite 1 [← List.take_append_drop (M n i j) (i' :: l)]
         rw[demazureOfWord_append]
         rw[demazureOfWord_append]
-        suffices DemazureOfWord (List.take (M.M i j) (i' :: l)) = DemazureOfWord (braidWord M j i) from by
+        suffices DemazureOfWord (List.take (M n i j) (i' :: l)) = DemazureOfWord (braidWord (M n) j i) from by
           rw[this]
         rw[h]
 
@@ -162,29 +161,25 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
       apply congr_arg
       rw[ih ⟨i, j, p⟩]
 
-lemma demazure_of_braidMoveSequence (l : List (Fin n)) (bms : List cs.BraidMove) :
-DemazureOfWord l = DemazureOfWord (cs.apply_braidMoveSequence bms l) := by
+lemma demazure_of_braidMoveSequence (l : List (Fin n)) (bms : List Symm.BraidMove) :
+DemazureOfWord l = DemazureOfWord (Symm.apply_braidMoveSequence bms l) := by
   induction bms with
   | nil =>
     simp[apply_braidMoveSequence]
   | cons bm bms ih =>
     rw[apply_braidMoveSequence]
-    rw[← demazure_of_braidMove (cs.apply_braidMoveSequence bms l) bm]
+    rw[← demazure_of_braidMove (Symm.apply_braidMoveSequence bms l) bm]
     exact ih
 
-theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : cs.IsReduced l) (hr' : cs.IsReduced l') :
+theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : Symm.IsReduced l) (hr' : Symm.IsReduced l') :
   DemazureOfWord l = DemazureOfWord l' := by
 
-  suffices ∃ (bms : List cs.BraidMove), cs.apply_braidMoveSequence bms l = l' from by
+  suffices ∃ (bms : List Symm.BraidMove), Symm.apply_braidMoveSequence bms l = l' from by
     rcases this with ⟨bms, h⟩
     rw[← h]
     exact demazure_of_braidMoveSequence l bms
 
-  exact cs.matsumoto_reduced sorry one_le_M l l' hr hr' h_eq
+  exact Symm.matsumoto_reduced l l' hr hr' h_eq
 
-def DemazureOfProd (w : @W n) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
-  DemazureOfWord (Classical.choose (cs.exists_reduced_word' w))
-
-theorem demazureOfProd_append (w w' : @W n) : DemazureOfProd (w * w') =
-  if (len (w * w') = len w + len w') then LinearMap.comp (DemazureOfProd w) (DemazureOfProd w')
-  else 0 := by sorry
+def DemazureOfProd (w : S (n + 1)) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
+  DemazureOfWord (Classical.choose ((@Symm n).exists_reduced_word' w))
