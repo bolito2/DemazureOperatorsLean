@@ -13,7 +13,7 @@ def f_simple : Fin n → S (n + 1) :=
   fun i => Equiv.swap i (i + 1)
 
 
-theorem f_liftable : @CoxeterMatrix.IsLiftable (Fin n) (S (n+1)) infer_instance (M n) (f_simple n) := sorry
+theorem f_liftable : (M n).IsLiftable (f_simple n) := sorry
 
 def equiv : W n → S (n + 1) :=
   lift
