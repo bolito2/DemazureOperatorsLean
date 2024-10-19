@@ -18,7 +18,7 @@ local prefix:100 "len" => cs.length
 
 class MatsumotoReady where
   one_le_M : ∀ i j : B, 1 ≤ M i j
-  alternatingWords_ne_one : ∀ (i j : B) (p : ℕ) (_ : p < 2 * M i j), (s i * s j) ^ p ≠ 1
+  alternatingWords_ne_one : ∀ (i j : B) (_ : i ≠ j) (p : ℕ) (_ : p < 2 * M i j), (s i * s j) ^ p ≠ 1
 
 structure NilMove (cs : CoxeterSystem M W) where
   i : B
@@ -241,7 +241,7 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
           simp[mul_comm, this]
         rw[this] at h_contra
 
-        apply MatsumotoReady.alternatingWords_ne_one i j (p + 1) _ h_contra
+        apply MatsumotoReady.alternatingWords_ne_one i j hij (p + 1) _ h_contra
         linarith
 
       · have p_odd : ¬ Even (p + 2) := by
@@ -278,7 +278,7 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
           ring
         rw[this] at h_contra
 
-        apply MatsumotoReady.alternatingWords_ne_one i j (p + 1) _ h_contra
+        apply MatsumotoReady.alternatingWords_ne_one i j hij (p + 1) _ h_contra
         linarith
 
 lemma prefix_braidWord_aux [MatsumotoReady cs]
