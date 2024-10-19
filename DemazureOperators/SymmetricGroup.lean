@@ -14,31 +14,6 @@ instance : Group (S (n + 1)) := Equiv.Perm.permGroup
 def f_simple : Fin n → S (n + 1) :=
   fun i => Equiv.swap i.castSucc i.succ
 
-theorem f_liftable : (M n).IsLiftable (f_simple n) := sorry
-
-def f := lift (cs n) ⟨ f_simple n, f_liftable n ⟩
-
-theorem f_apply_simple (i : Fin n) : f n ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
-  apply lift_apply_simple (cs n)
-
-
-theorem f_surjective : Function.Surjective (f n) := sorry
-theorem f_injective : Function.Injective (f n) := sorry
-theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
-
-def f_equiv : (M n).Group ≃* S (n + 1) := by
-  apply MulEquiv.ofBijective (f n)
-  exact f_bijective n
-
-theorem f_equiv_apply_simple (i : Fin n) : (f_equiv n) ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
-  simp[f_equiv, f_apply_simple]
-
-def S_cox : CoxeterSystem (M n) (S (n + 1)) := ⟨ (f_equiv n).symm ⟩
-
-theorem S_cox_simple (i : Fin n) : (S_cox n).simple i = (Equiv.swap i.castSucc (i.succ)) := by
-  rw[← f_equiv_apply_simple]
-  rfl
-
 lemma cycle_of_adjacent_swap (i j : Fin n) (hij : i ≠ j) (h1 : j.succ = i.castSucc ∨ i.succ = j.castSucc) :
   Equiv.Perm.IsThreeCycle (Equiv.swap i.castSucc i.succ * Equiv.swap j.castSucc j.succ) := by
   rcases h1 with h1 | h1
@@ -65,7 +40,80 @@ lemma cycle_of_adjacent_swap (i j : Fin n) (hij : i ≠ j) (h1 : j.succ = i.cast
       rw[h] at h1
       linarith
 
+theorem f_liftable : (M n).IsLiftable (f_simple n) := by
+  intro i j
+  simp[M, CoxeterMatrix.Aₙ]
+  by_cases heq : i = j
+  simp[heq]
+  simp[f_simple]
 
+  simp[heq]
+
+  by_cases h1 : j.succ = i.castSucc ∨ i.succ = j.castSucc
+  · have h1' :  (j.val + 1 = i.val ∨ i.val + 1 = j.val) := by
+      simp[Fin.ext_iff] at h1
+      simp[h1]
+
+    rw[if_pos h1']
+    simp[f_simple]
+    have hcycle := cycle_of_adjacent_swap n i j heq h1
+    obtain ⟨ ho , _ ⟩ := (orderOf_eq_iff (by linarith)).mp (Equiv.Perm.IsThreeCycle.orderOf hcycle)
+    exact ho
+
+  · have h1' : ¬ (j.val + 1 = i.val ∨ i.val + 1 = j.val) := by
+      simp[Fin.ext_iff] at h1
+      simp[h1]
+
+    rw[if_neg h1']
+    simp[f_simple]
+    apply Equiv.ext_iff.mpr
+    intro k
+    simp only [pow_succ]
+
+    rcases not_or.mp h1 with ⟨ h1, h2 ⟩
+
+    have h3 : ¬ (i.castSucc = j.castSucc) := by
+      apply Fin.castSucc_inj.ne.mpr heq
+    have h4 : ¬ (i.succ = j.succ) := by
+      apply Fin.succ_inj.ne.mpr heq
+
+    rw[← ne_eq] at h1 h2 h3 h4
+
+    have h_disjoint : Equiv.Perm.Disjoint (Equiv.swap i.castSucc i.succ) (Equiv.swap j.castSucc j.succ) := by
+      intro k
+      apply or_iff_not_imp_left.mpr
+      intro h
+      rcases Equiv.eq_or_eq_of_swap_apply_ne_self h with h | h
+      apply Equiv.swap_apply_of_ne_of_ne
+      repeat
+        simp[h, heq, h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
+      apply Equiv.swap_apply_of_ne_of_ne h2 h4
+
+    nth_rewrite 2 [Equiv.Perm.Disjoint.commute h_disjoint]
+    simp
+
+def f := lift (cs n) ⟨ f_simple n, f_liftable n ⟩
+
+theorem f_apply_simple (i : Fin n) : f n ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
+  apply lift_apply_simple (cs n)
+
+
+theorem f_surjective : Function.Surjective (f n) := sorry
+theorem f_injective : Function.Injective (f n) := sorry
+theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
+
+def f_equiv : (M n).Group ≃* S (n + 1) := by
+  apply MulEquiv.ofBijective (f n)
+  exact f_bijective n
+
+theorem f_equiv_apply_simple (i : Fin n) : (f_equiv n) ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
+  simp[f_equiv, f_apply_simple]
+
+def S_cox : CoxeterSystem (M n) (S (n + 1)) := ⟨ (f_equiv n).symm ⟩
+
+theorem S_cox_simple (i : Fin n) : (S_cox n).simple i = (Equiv.swap i.castSucc (i.succ)) := by
+  rw[← f_equiv_apply_simple]
+  rfl
 
 instance instOfMatsumotoReady : MatsumotoReady (S_cox n) where
   one_le_M := by
