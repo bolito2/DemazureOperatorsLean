@@ -16,9 +16,9 @@ local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "len" => cs.length
 
--- assume the coxeter system has some properties --
-variable (hm : ∀ (i j : B), 1 ≤ M i j) -- finite (non-zero) indexes in the matrix
-variable (alternatingWord_lt_two_mul_M_ne_one : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1)
+class MatsumotoReady where
+  one_le_M : ∀ i j : B, 1 ≤ M i j
+  alternatingWords_ne_one : ∀ (i j : B) (p : ℕ) (_ : p < 2 * M i j), (s i * s j) ^ p ≠ 1
 
 structure NilMove (cs : CoxeterSystem M W) where
   i : B
@@ -173,8 +173,8 @@ lemma leftDescent_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs
 lemma leftInversion_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs.IsLeftInversion (π (i :: l)) (s i) :=
   (cs.isLeftInversion_simple_iff_isLeftDescent (π (i :: l)) i).mpr (cs.leftDescent_of_cons i l hr)
 
-theorem alternatingWord_succ_ne_alternatingWord_eraseIdx
-(ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1) (i j : B) (p : ℕ) (hp : p < M i j) (hij : i ≠ j) :
+theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
+ (i j : B) (p : ℕ) (hp : p < M i j) (hij : i ≠ j) :
   ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by
   revert i j
 
@@ -241,7 +241,7 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx
           simp[mul_comm, this]
         rw[this] at h_contra
 
-        apply ha i j (p + 1) _ h_contra
+        apply MatsumotoReady.alternatingWords_ne_one i j (p + 1) _ h_contra
         linarith
 
       · have p_odd : ¬ Even (p + 2) := by
@@ -278,13 +278,13 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx
           ring
         rw[this] at h_contra
 
-        apply ha i j (p + 1) _ h_contra
+        apply MatsumotoReady.alternatingWords_ne_one i j (p + 1) _ h_contra
         linarith
 
-lemma prefix_braidWord_aux (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1)
+lemma prefix_braidWord_aux [MatsumotoReady cs]
 (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
- ∀ (p : ℕ) (h : p ≤ M i j), ∃ t : List B, π (alternatingWord i j p ++ t) = w ∧ cs.IsReduced (alternatingWord i j p ++ t) := by
+ ∀ (p : ℕ) (_ : p ≤ M i j), ∃ t : List B, π (alternatingWord i j p ++ t) = w ∧ cs.IsReduced (alternatingWord i j p ++ t) := by
   intro p
   induction p with
   | zero =>
@@ -353,7 +353,7 @@ lemma prefix_braidWord_aux (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (
         rw[← wordProd_cons] at hk
         have : j :: alternatingWord i j p = alternatingWord i j (p + 1) := by simp[alternatingWord_succ', p_even]
         rw[this] at hk
-        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx ha i j p hp'' i_ne_j k k_lt_len hk
+        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx i j p hp'' i_ne_j k k_lt_len hk
 
       · simp at k_lt_len
         rw[List.eraseIdx_append_of_length_le] at hk
@@ -415,7 +415,7 @@ lemma prefix_braidWord_aux (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (
         rw[← wordProd_cons] at hk
         have : i :: alternatingWord i j p = alternatingWord i j (p + 1) := by simp[alternatingWord_succ', p_even]
         rw[this] at hk
-        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx ha i j p hp'' i_ne_j k k_lt_len hk
+        exact cs.alternatingWord_succ_ne_alternatingWord_eraseIdx i j p hp'' i_ne_j k k_lt_len hk
       · simp at k_lt_len
         rw[List.eraseIdx_append_of_length_le] at hk
         rw[hk]
@@ -430,13 +430,13 @@ lemma prefix_braidWord_aux (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (
         simp[k_lt_len]
 
 
-lemma prefix_braidWord (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l'))
+lemma prefix_braidWord [MatsumotoReady cs] (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l'))
 (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
   ∃ t : List B, π (i :: l) = π (braidWord M i j ++ t) ∧ cs.IsReduced (braidWord M i j ++ t) := by
   have h : M i j ≤ M i j := by linarith
   have h' : π (j :: l') = π (i :: l) := Eq.symm pi_eq
 
-  rcases cs.prefix_braidWord_aux ha (π (i :: l)) l l' i j i_ne_j rfl h' hr hr' (M i j) h with ⟨t, ht, htr⟩
+  rcases cs.prefix_braidWord_aux (π (i :: l)) l l' i j i_ne_j rfl h' hr hr' (M i j) h with ⟨t, ht, htr⟩
   use t
   rw[braidWord]
   constructor
@@ -507,8 +507,7 @@ lemma matsumoto_reduced_inductionStep_of_firstLetterEq (p : ℕ) (l_t l'_t : Lis
   rw[braidMoveSequence_cons]
   use (List.map cs.shift_braidMove bms)
 
-theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
-(ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1)(p : ℕ) (l l' : List B)
+theorem matsumoto_reduced_aux [MatsumotoReady cs] (p : ℕ) (l l' : List B)
 (len_l_eq_p : l.length = p) (len_l'_eq_p : l'.length = p)
 (l_reduced : cs.IsReduced l) (l'_reduced : cs.IsReduced l') (h_eq : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
@@ -539,7 +538,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
 
     · obtain ⟨m, hm⟩ : ∃ m : ℕ ,M i j = m + 1 := by
         use M i j - 1
-        simp[hm]
+        simp[MatsumotoReady.one_le_M cs i j]
 
       have hm' : M j i = m + 1 := by
         simp[M.symmetric]
@@ -553,7 +552,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
           contradiction
 
         obtain ⟨b_tail, hb, b_reduced⟩ :=
-          cs.prefix_braidWord ha l'_t l_t j i j_ne_i (Eq.symm h_eq) l'_reduced l_reduced
+          cs.prefix_braidWord l'_t l_t j i j_ne_i (Eq.symm h_eq) l'_reduced l_reduced
 
         have hb' : cs.wordProd (i :: l_t) = cs.wordProd (braidWord M j i ++ b_tail) := by
           rw[← hb]
@@ -637,7 +636,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
         apply cs.matsumoto_reduced_inductionStep_of_firstLetterEq p (alternatingWord i j m ++ b_tail)
           l'_t j b_len_p len_l'_t_eq_p (Eq.symm hb') b_reduced' l'_reduced ih
 
-      · rcases cs.prefix_braidWord ha l_t l'_t i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
+      · rcases cs.prefix_braidWord l_t l'_t i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
         apply cs.concatenate_braidMove_sequences (i :: l_t) (braidWord M i j ++ b_tail) (j :: l'_t)
 
         simp[braidWord]
@@ -753,9 +752,9 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
         exact ih'
 
 
-theorem matsumoto_reduced (ha : ∀ (i j : B) (p : ℕ) (hp : p < 2 * M i j), (s i * s j) ^ p ≠ 1) (hm : ∀ (i j : B), 1 ≤ M i j) (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
+theorem matsumoto_reduced [MatsumotoReady cs] (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
-  apply cs.matsumoto_reduced_aux hm ha (l.length) l l' rfl _ hr hr' h
+  apply cs.matsumoto_reduced_aux (l.length) l l' rfl _ hr hr' h
   calc
       l'.length = len (π l') := by
         rw[IsReduced] at hr'

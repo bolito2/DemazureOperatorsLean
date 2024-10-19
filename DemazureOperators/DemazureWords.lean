@@ -60,7 +60,7 @@ DemazureOfWord l = DemazureOfWord (cs.apply_braidMove bm l) := by
 
     match p with
     | 0 => simp[DemazureOfWord]
-    | p + 1 => simp[DemazureOfWord]
+    | _ + 1 => simp[DemazureOfWord]
 
   | cons i' l ih =>
     rintro ⟨i, j, p⟩
