@@ -4,3 +4,11 @@ import DemazureOperators.Demazure
 import DemazureOperators.DemazureAux
 import DemazureOperators.DemazureRelations
 import DemazureOperators.DemazureAuxRelations
+
+-- Coxeter things
+import DemazureOperators.StrongExchange
+import DemazureOperators.Matsumoto
+import DemazureOperators.SymmetricGroup
+
+-- Demazure words
+import DemazureOperators.DemazureWords
