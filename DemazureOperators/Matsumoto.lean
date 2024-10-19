@@ -323,7 +323,7 @@ lemma prefix_braidWord_aux [MatsumotoReady cs]
           rw[cs.wordProd_cons]
           rw[hw]
           rw[htr]
-          rw[List.length_eraseIdx k.2]
+          rw[List.length_eraseIdx_of_lt k.2]
           simp[add_assoc]
 
           have : 1 ≤ t.length := by
@@ -386,7 +386,7 @@ lemma prefix_braidWord_aux [MatsumotoReady cs]
           rw[cs.wordProd_cons]
           rw[hw]
           rw[htr]
-          rw[List.length_eraseIdx k.2]
+          rw[List.length_eraseIdx_of_lt k.2]
           simp[add_assoc]
 
           have : 1 ≤ t.length := by

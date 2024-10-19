@@ -154,8 +154,6 @@ instance instOfMatsumotoReady : MatsumotoReady (S_cox n) where
 
       rw[if_pos h1'] at hp'
 
-
-
       have zero_lt_three : 0 < 3 := by
         linarith
 

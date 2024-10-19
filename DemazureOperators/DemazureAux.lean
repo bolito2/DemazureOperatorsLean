@@ -89,8 +89,7 @@ lemma mk_eq {a b : PolyFraction' n} : mk a = mk b ↔ a.numerator*b.denominator 
   intro h
   simp[mk] at h
   rw[Quotient.eq] at h
-  rw[← equiv_r] at h
-  simp[r] at h
+  simp[s,r] at h
   rw[h]
   ring
   simp[mk]

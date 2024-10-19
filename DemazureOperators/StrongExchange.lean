@@ -374,18 +374,21 @@ lemma nReflectionOccurrences_even_braidWord (t : cs.T) :
   · have : k < (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length := by
       simp[h, m_le_two_m]
 
-    rw[List.getElem_append_left (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) this]
+    rw[List.getElem_append_left this]
     rw[List.getElem_take']
+    exact h
   · have h_k_le : k - M i j < M i j := by
       simp at hk
       apply Nat.sub_lt_left_of_lt_add
       simp at h
       exact h
       linarith
-    have : ¬ k < (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length := by
+    have : (List.take (M.M i j) (cs.leftInvSeq (alternatingWord i j (2 * M.M i j)))).length ≤ k := by
       simp[h, m_le_two_m]
-    rw[List.getElem_append_right (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) (List.take (M i j) (cs.leftInvSeq (alternatingWord i j (2 * M i j)))) this]
-    rw[List.getElem_take']
+      linarith
+
+    rw[List.getElem_append_right this]
+    rw[List.getElem_take]
     simp[m_le_two_m]
 
     rw[← leftInvSeq_repeats' cs (k - M i j) h_k_le]
@@ -396,7 +399,6 @@ lemma nReflectionOccurrences_even_braidWord (t : cs.T) :
     rw[← Nat.add_sub_assoc]
     simp
     linarith
-    simp[m_le_two_m, h_k_le]
 
 lemma parityReflectionOccurrences_braidWord (t : cs.T) :
   parityReflectionOccurrences cs (alternatingWord i j (2 * M i j)) t = 0 := by
