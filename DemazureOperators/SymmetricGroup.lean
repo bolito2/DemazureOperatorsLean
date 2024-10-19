@@ -97,8 +97,17 @@ def f := lift (cs n) ⟨ f_simple n, f_liftable n ⟩
 theorem f_apply_simple (i : Fin n) : f n ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
   apply lift_apply_simple (cs n)
 
+theorem f_surjective : Function.Surjective (f n) := by
+  apply MonoidHom.range_top_iff_surjective.mp
+  apply eq_top_iff.mpr
 
-theorem f_surjective : Function.Surjective (f n) := sorry
+  have : Subgroup.closure { a : Equiv.Perm (Fin (n+1)) | Equiv.Perm.IsSwap a } = ⊤ := by
+    exact Equiv.Perm.closure_isSwap
+
+  rw[← this]
+  simp
+
+
 theorem f_injective : Function.Injective (f n) := sorry
 theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
 
