@@ -98,14 +98,21 @@ theorem f_apply_simple (i : Fin n) : f n ((cs n).simple i) = Equiv.swap i.castSu
   apply lift_apply_simple (cs n)
 
 theorem f_surjective : Function.Surjective (f n) := by
-  apply MonoidHom.range_top_iff_surjective.mp
+  apply MonoidHom.mrange_top_iff_surjective.mp
   apply eq_top_iff.mpr
 
-  have : Subgroup.closure { a : Equiv.Perm (Fin (n+1)) | Equiv.Perm.IsSwap a } = ⊤ := by
-    exact Equiv.Perm.closure_isSwap
+  have : Submonoid.closure (Set.range fun (i : Fin n) ↦ Equiv.swap i.castSucc i.succ) = ⊤ := by
+    exact Equiv.Perm.mclosure_swap_castSucc_succ n
 
   rw[← this]
   simp
+
+  intro p hp
+  simp at hp
+  rcases hp with ⟨ i, rfl ⟩
+  simp
+  use (cs n).simple i
+  simp[f_apply_simple]
 
 
 theorem f_injective : Function.Injective (f n) := sorry
