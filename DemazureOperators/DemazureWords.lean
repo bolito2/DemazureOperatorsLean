@@ -181,7 +181,7 @@ theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π
     rw[← h]
     exact demazure_of_braidMoveSequence l bms
 
-  exact cs.matsumoto_reduced sorry sorry l l' hr hr' h_eq
+  exact cs.matsumoto_reduced sorry one_le_M l l' hr hr' h_eq
 
 def DemazureOfProd (w : @W n) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
   DemazureOfWord (Classical.choose (cs.exists_reduced_word' w))
