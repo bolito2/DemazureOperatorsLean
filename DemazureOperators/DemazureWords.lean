@@ -5,17 +5,19 @@ import DemazureOperators.SymmetricGroup
 
 import Mathlib.Data.Int.Range
 
+set_option quotPrecheck false
+
 open Demazure CoxeterSystem
 noncomputable section
 
 variable {n : ℕ}
-def Symm := CoxeterSystem.S_cox n
+def Symm (n : ℕ) := CoxeterSystem.S_cox n
 
-instance : MatsumotoReady (@Symm n) := instOfMatsumotoReady n
+instance : MatsumotoReady (Symm n) := instOfMatsumotoReady n
 
-local prefix:100 "s" => Symm.simple
-local prefix:100 "π" => Symm.wordProd
-local prefix:100 "len" => Symm.length
+local prefix:100 "s" => (Symm n).simple
+local prefix:100 "π" => (Symm n).wordProd
+local prefix:100 "len" => (Symm n).length
 
 lemma one_le_M : ∀ i j : Fin n, 1 ≤ M n i j := by
   intro i j
@@ -47,8 +49,8 @@ lemma demazureOfWord_append (l l' : List (Fin n)) : DemazureOfWord (l ++ l') = L
   | nil => simp[DemazureOfWord]
   | cons i l ih => simp[DemazureOfWord, ih, LinearMap.comp_assoc]
 
-theorem demazure_of_braidMove (l : List (Fin n)) (bm : Symm.BraidMove) :
-DemazureOfWord l = DemazureOfWord (Symm.apply_braidMove bm l) := by
+theorem demazure_of_braidMove (l : List (Fin n)) (bm : (Symm n).BraidMove) :
+DemazureOfWord l = DemazureOfWord ((Symm n).apply_braidMove bm l) := by
   revert bm
   induction l with
   | nil =>
@@ -161,25 +163,25 @@ DemazureOfWord l = DemazureOfWord (Symm.apply_braidMove bm l) := by
       apply congr_arg
       rw[ih ⟨i, j, p⟩]
 
-lemma demazure_of_braidMoveSequence (l : List (Fin n)) (bms : List Symm.BraidMove) :
-DemazureOfWord l = DemazureOfWord (Symm.apply_braidMoveSequence bms l) := by
+lemma demazure_of_braidMoveSequence (l : List (Fin n)) (bms : List (Symm n).BraidMove) :
+DemazureOfWord l = DemazureOfWord ((Symm n).apply_braidMoveSequence bms l) := by
   induction bms with
   | nil =>
     simp[apply_braidMoveSequence]
   | cons bm bms ih =>
     rw[apply_braidMoveSequence]
-    rw[← demazure_of_braidMove (Symm.apply_braidMoveSequence bms l) bm]
+    rw[← demazure_of_braidMove ((Symm n).apply_braidMoveSequence bms l) bm]
     exact ih
 
-theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : Symm.IsReduced l) (hr' : Symm.IsReduced l') :
+theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π l') (hr : (Symm n).IsReduced l) (hr' : (Symm n).IsReduced l') :
   DemazureOfWord l = DemazureOfWord l' := by
 
-  suffices ∃ (bms : List Symm.BraidMove), Symm.apply_braidMoveSequence bms l = l' from by
+  suffices ∃ (bms : List (Symm n).BraidMove), (Symm n).apply_braidMoveSequence bms l = l' from by
     rcases this with ⟨bms, h⟩
     rw[← h]
     exact demazure_of_braidMoveSequence l bms
 
-  exact Symm.matsumoto_reduced l l' hr hr' h_eq
+  exact (Symm n).matsumoto_reduced l l' hr hr' h_eq
 
 def DemazureOfProd (w : S (n + 1)) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
-  DemazureOfWord (Classical.choose ((@Symm n).exists_reduced_word' w))
+  DemazureOfWord (Classical.choose ((Symm n).exists_reduced_word' w))
