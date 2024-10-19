@@ -16,7 +16,6 @@ local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "len" => cs.length
 
-instance : DecidableEq (@M n).Group := by sorry
 instance : Group (@W n) := CoxeterMatrix.instGroupGroup M
 
 lemma one_le_M : ∀ i j : Fin n, 1 ≤ M i j := by

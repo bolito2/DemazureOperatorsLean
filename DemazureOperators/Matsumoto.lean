@@ -4,10 +4,13 @@ import Init.Data.List.Erase
 set_option linter.unusedSectionVars false
 
 namespace CoxeterSystem
+noncomputable section
 
-variable {B : Type}  [DecidableEq B]
-variable {W : Type} [Group W] [DecidableEq W]
+variable {B : Type}
+variable {W : Type} [Group W]
 variable {M : CoxeterMatrix B} (cs : CoxeterSystem M W)
+
+instance : DecidableEq W := Classical.typeDecidableEq W
 
 local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
@@ -633,7 +636,7 @@ theorem matsumoto_reduced_aux (hm : ∀ (i j : B), 1 ≤ M i j)
 
         apply cs.matsumoto_reduced_inductionStep_of_firstLetterEq p (alternatingWord i j m ++ b_tail)
           l'_t j b_len_p len_l'_t_eq_p (Eq.symm hb') b_reduced' l'_reduced ih
-          
+
       · rcases cs.prefix_braidWord ha l_t l'_t i j first_letter_eq h_eq l_reduced l'_reduced with ⟨b_tail, hb, b_reduced⟩
         apply cs.concatenate_braidMove_sequences (i :: l_t) (braidWord M i j ++ b_tail) (j :: l'_t)
 
