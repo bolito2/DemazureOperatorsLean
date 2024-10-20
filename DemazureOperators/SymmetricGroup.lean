@@ -133,11 +133,10 @@ instance : Finite (A 0) := by
   infer_instance
 
 
-
 def subgroupequiv : withoutLast n ≃* A (n - 1) := by
   sorry
 
-lemma withoutLast_index_le_n_succ : (withoutLast n).index ≤ n + 1 := by
+lemma withoutLast_index_le_n_succ : (withoutLast n).index ≤ n + 1 ∧ (withoutLast n).index ≠ 0 := by
   sorry
 
 theorem card_symm_eq_factorial : Nat.card (S n) = Nat.factorial n := by
@@ -145,14 +144,16 @@ theorem card_symm_eq_factorial : Nat.card (S n) = Nat.factorial n := by
   rw[Fintype.card_perm]
   simp
 
-theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) := by
+theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) ∧ Nat.card (A n) ≠ 0 := by
   rw[card_symm_eq_factorial (n + 1)]
 
   induction n
   case zero =>
+    constructor
     simp only [Nat.factorial]
     ring
     rw[cardA0]
+    simp
   case succ n ih =>
     rw[A]
     rw[← Subgroup.card_mul_index (withoutLast (n + 1))]
@@ -162,25 +163,30 @@ theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) := by
       sorry
 
     rw[this, mul_comm]
+
+    constructor
     apply Nat.mul_le_mul
-    · exact withoutLast_index_le_n_succ (n + 1)
-    · exact ih
+    · exact (withoutLast_index_le_n_succ (n + 1)).left
+    · exact ih.left
+
+    exact Nat.mul_ne_zero (withoutLast_index_le_n_succ (n + 1)).right ih.right
 
 instance : Finite (A n) := by
   induction n
   case zero => infer_instance
-  case succ n ih =>
+  case succ n _ =>
     apply Nat.finite_of_card_ne_zero
+    exact (card_An_le_card_Sn (n + 1)).right
 
 
 theorem card_An_eq_card_Sn : Nat.card (A n) = Nat.card (S (n+1)) := by
   apply Nat.le_antisymm
-  · exact card_An_le_card_Sn n
+  · exact (card_An_le_card_Sn n).left
   · exact Nat.card_le_card_of_surjective (f n) (f_surjective n)
 
 theorem f_bijective : Function.Bijective (f n) := by
   apply (Function.Surjective.bijective_of_nat_card_le (f_surjective n) _)
-  exact card_An_le_card_Sn n
+  exact (card_An_le_card_Sn n).left
 
 def f_equiv : (A n) ≃* S (n + 1) := by
   apply MulEquiv.ofBijective (f n)
