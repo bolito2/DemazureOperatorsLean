@@ -9,6 +9,7 @@ def M := CoxeterMatrix.Aₙ n
 def cs := (M n).toCoxeterSystem
 
 abbrev S (n : ℕ) := Equiv.Perm (Fin n)
+abbrev A (n : ℕ) := (M n).Group
 instance : Group (S (n + 1)) := Equiv.Perm.permGroup
 
 def f_simple : Fin n → S (n + 1) :=
@@ -124,7 +125,7 @@ theorem f_injective : Function.Injective (f n) := by
 
 theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
 
-def f_equiv : (M n).Group ≃* S (n + 1) := by
+def f_equiv : (A n) ≃* S (n + 1) := by
   apply MulEquiv.ofBijective (f n)
   exact f_bijective n
 
