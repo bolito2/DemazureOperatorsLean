@@ -115,7 +115,13 @@ theorem f_surjective : Function.Surjective (f n) := by
   simp[f_apply_simple]
 
 
-theorem f_injective : Function.Injective (f n) := sorry
+def withoutLast := Subgroup.closure (Set.range fun (i : Fin (n - 1)) ↦ (cs n).simple ⟨i, Nat.lt_of_lt_pred i.is_lt⟩)
+def minLengthWord := (Set.range fun y : (withoutLast n) ↦ (cs n).length y)
+
+theorem f_injective : Function.Injective (f n) := by
+  sorry
+
+
 theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
 
 def f_equiv : (M n).Group ≃* S (n + 1) := by
