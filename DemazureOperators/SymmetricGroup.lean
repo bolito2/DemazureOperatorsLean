@@ -119,11 +119,68 @@ theorem f_surjective : Function.Surjective (f n) := by
 def withoutLast := Subgroup.closure (Set.range fun (i : Fin (n - 1)) ↦ (cs n).simple ⟨i, Nat.lt_of_lt_pred i.is_lt⟩)
 def minLengthWord := (Set.range fun y : (withoutLast n) ↦ (cs n).length y)
 
-theorem f_injective : Function.Injective (f n) := by
+instance : Subsingleton (FreeGroup (Fin 0)) := by
+  infer_instance
+
+instance : Subsingleton (A 0) := by
+  simp[A, CoxeterMatrix.Group, PresentedGroup]
+  apply Quotient.instSubsingletonQuotient
+
+theorem cardA0 : Nat.card (A 0) = 1 := by
+  exact Nat.card_unique
+
+instance : Finite (A 0) := by
+  infer_instance
+
+
+
+def subgroupequiv : withoutLast n ≃* A (n - 1) := by
   sorry
 
+lemma withoutLast_index_le_n_succ : (withoutLast n).index ≤ n + 1 := by
+  sorry
 
-theorem f_bijective : Function.Bijective (f n) := ⟨ f_injective n, f_surjective n ⟩
+theorem card_symm_eq_factorial : Nat.card (S n) = Nat.factorial n := by
+  simp[S]
+  rw[Fintype.card_perm]
+  simp
+
+theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) := by
+  rw[card_symm_eq_factorial (n + 1)]
+
+  induction n
+  case zero =>
+    simp only [Nat.factorial]
+    ring
+    rw[cardA0]
+  case succ n ih =>
+    rw[A]
+    rw[← Subgroup.card_mul_index (withoutLast (n + 1))]
+    rw[Nat.factorial_succ]
+
+    have : Nat.card (withoutLast (n + 1)) = Nat.card (A n) := by
+      sorry
+
+    rw[this, mul_comm]
+    apply Nat.mul_le_mul
+    · exact withoutLast_index_le_n_succ (n + 1)
+    · exact ih
+
+instance : Finite (A n) := by
+  induction n
+  case zero => infer_instance
+  case succ n ih =>
+    apply Nat.finite_of_card_ne_zero
+
+
+theorem card_An_eq_card_Sn : Nat.card (A n) = Nat.card (S (n+1)) := by
+  apply Nat.le_antisymm
+  · exact card_An_le_card_Sn n
+  · exact Nat.card_le_card_of_surjective (f n) (f_surjective n)
+
+theorem f_bijective : Function.Bijective (f n) := by
+  apply (Function.Surjective.bijective_of_nat_card_le (f_surjective n) _)
+  exact card_An_le_card_Sn n
 
 def f_equiv : (A n) ≃* S (n + 1) := by
   apply MulEquiv.ofBijective (f n)
