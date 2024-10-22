@@ -25,47 +25,10 @@ variable {n : ℕ} (n_pos : n > 0) (n_gt_1 : n > 1)
 /- In this file we define the Demazure operator directly as a function
   in the ring of multivariate polynomials -/
 
-/- Prerequisites - Function to swap two variables of a polynomial -/
-
-def TranspositionFun (i j : Fin n) : Fin n → Fin n :=
-  fun k ↦ if k = i then j else if k = j then i else k
-
-lemma transposition_order_two (i j : Fin n): ∀k : Fin n, TranspositionFun i j (TranspositionFun i j k) = k := by
-  intro k
-  simp[TranspositionFun]
-
-  by_cases h1 : k = i
-  simp[h1]
-  by_cases h2 : k = j
-  simp [h2]
-  simp[h1,h2]
-
-lemma transposition_order_two' (i j : Fin n): TranspositionFun i j ∘ TranspositionFun i j = fun k ↦ k := by
-  funext k
-  exact transposition_order_two i j k
-
-lemma transposition_symmetric {i j : Fin n} : TranspositionFun i j = TranspositionFun j i := by
-  funext k
-  simp[TranspositionFun]
-  by_cases h1 : k = i
-  simp[h1]
-  by_cases h2 : i = j
-  simp [h2]
-  simp[h1,h2]
-  simp[h1]
-
-def Transposition (i j : Fin n) : Equiv.Perm (Fin n) where
-  toFun := TranspositionFun i j
-  invFun := TranspositionFun i j
-  left_inv := by
-   simp[Function.LeftInverse]
-   exact transposition_order_two i j
-  right_inv := by
-    simp[Function.RightInverse]
-    exact transposition_order_two i j
+/- Prerequisites  -/
 
 def SwapVariablesFun (i j : Fin n) (p : MvPolynomial (Fin n) ℂ) : (MvPolynomial (Fin n) ℂ) :=
-  (renameEquiv ℂ (Transposition i j)) p
+  (renameEquiv ℂ (Equiv.swap i j)) p
 
 @[simp]
 lemma swap_variables_map_zero (i j : Fin n) : SwapVariablesFun i j 0 = 0 := by
@@ -73,7 +36,7 @@ lemma swap_variables_map_zero (i j : Fin n) : SwapVariablesFun i j 0 = 0 := by
   have : (0 : MvPolynomial (Fin n) ℂ) = C 0 := by
     refine C_0.symm
   rw[this]
-  exact rename_C (Transposition i j) 0
+  exact rename_C (Equiv.swap i j) 0
 
 @[simp]
 lemma swap_variables_map_one {i j : Fin n} : SwapVariablesFun i j 1 = 1 := by
@@ -119,8 +82,10 @@ lemma swap_variables_commutes {i j : Fin n} : ∀r : ℂ, SwapVariablesFun i j (
 @[simp]
 lemma swap_variables_order_two {i j : Fin n} {p : MvPolynomial (Fin n) ℂ} :
   SwapVariablesFun i j (SwapVariablesFun i j p) = p := by
-  simp[SwapVariablesFun, Transposition]
-  rw[transposition_order_two' i j]
+  simp[SwapVariablesFun, Equiv.swap_mul_self]
+  have : (Equiv.swap i j) ∘ (Equiv.swap i j) = Equiv.refl _ := by
+    exact (Equiv.eq_symm_comp (Equiv.swap i j) ⇑(Equiv.swap i j) ⇑(Equiv.refl (Fin n))).mp rfl
+  rw[this]
   apply MvPolynomial.rename_id
 
 -- SwapVariables is an algebra equivalence
@@ -144,7 +109,7 @@ def SwapVariables (i : Fin n) (j : Fin n) : AlgEquiv ℂ (MvPolynomial (Fin n) �
 def circleEquation : MvPolynomial (Fin 2) ℂ := X 0 ^ 2 + X 1 ^ 2 - C 1
 
 example : circleEquation = SwapVariables 0 1 circleEquation := by
-  simp [circleEquation, SwapVariables, SwapVariablesFun, Transposition, TranspositionFun]
+  simp [circleEquation, SwapVariables, SwapVariablesFun]
   ring
 
 /- some more properties of swap_variables and others -/
@@ -158,38 +123,26 @@ lemma swap_variables_ne_zero (i j : Fin (n + 1)) : ∀ p : MvPolynomial (Fin (n 
   exact h
 
 @[simp]
-lemma transposition_first {i j : Fin (n + 1)} : TranspositionFun i j i = j := by
-  simp [TranspositionFun]
-
-@[simp]
-lemma transposition_second {i j : Fin (n + 1)} : TranspositionFun i j j = i := by
-  simp [TranspositionFun]
-
-@[simp]
-lemma transposition_none {i j k : Fin (n + 1)} (h1 : k ≠ i) (h2 : k ≠ j) :
-TranspositionFun i j k = k := by
-  simp [TranspositionFun, h1, h2]
-
-@[simp]
 lemma swap_variables_first {i j : Fin (n + 1)} : SwapVariablesFun i j (X i) = X j := by
-  simp [SwapVariables, SwapVariablesFun, Transposition, TranspositionFun]
+  simp [SwapVariables, SwapVariablesFun]
 
-lemma swap_variables_symmetrical {i j : Fin (n + 1)} {p : MvPolynomial (Fin (n + 1)) ℂ} : SwapVariablesFun i j p = SwapVariablesFun j i p := by
-  simp [SwapVariables, SwapVariablesFun, Transposition, transposition_symmetric]
+lemma swap_variables_symmetrical {i j : Fin (n + 1)} {p : MvPolynomial (Fin (n + 1)) ℂ} :
+  SwapVariablesFun i j p = SwapVariablesFun j i p := by
+  simp [SwapVariables, SwapVariablesFun, Equiv.swap_comm]
 
 @[simp]
 lemma swap_variables_second {i j : Fin (n + 1)} : SwapVariablesFun i j (X j) = X i := by
-  simp [SwapVariables, SwapVariablesFun, Transposition, TranspositionFun]
+  simp [SwapVariables, SwapVariablesFun]
 
 @[simp]
 lemma swap_variables_none {i j k : Fin (n + 1)} (h1 : k ≠ i) (h2 : k ≠ j) :
 SwapVariablesFun i j (X k) = X k := by
-  simp [SwapVariables, SwapVariablesFun, Transposition, TranspositionFun, h1, h2]
+  simp [SwapVariables, SwapVariablesFun, h1, h2, Equiv.swap_apply_of_ne_of_ne]
 
 @[simp]
 lemma swap_variables_none' {i j k : Fin (n + 1)} {h1 : k ≠ i} {h2 : k ≠ j} :
 SwapVariablesFun i j (X k) = X k := by
-  simp [SwapVariables, SwapVariablesFun, Transposition, TranspositionFun, h1, h2]
+  simp [SwapVariables, SwapVariablesFun, h1, h2, Equiv.swap_apply_of_ne_of_ne]
 
 /- Some really specific and technical lemmas-/
 lemma fin_succ_ne_fin_castSucc (i : Fin n) : Fin.succ i ≠ Fin.castSucc i := by
@@ -317,8 +270,7 @@ lemma demazure_division_exact : ∀(i : Fin n), ∀(p : MvPolynomial (Fin (n + 1
     intro j c _ _
 
     dsimp
-    simp[Transposition, TranspositionFun]
-
+    simp[Equiv.swap_apply_def]
 
     by_cases h1 : j = Fin.castSucc i
     by_cases h2 : j = Fin.succ i
@@ -341,6 +293,7 @@ lemma demazure_division_exact : ∀(i : Fin n), ∀(p : MvPolynomial (Fin (n + 1
     simp[h3] at h2
     simp[h1,h2,h3, fin_succ_ne_fin_castSucc i, Fin.succ_ne_zero]
     simp[h1,h2,h3, fin_succ_ne_fin_castSucc i, Fin.succ_ne_zero]
+
 
 -- Now we can define the Demazure operator
 def DemazureFun (i : Fin n) (p : MvPolynomial (Fin (n + 1)) ℂ) : MvPolynomial (Fin (n + 1)) ℂ  :=
@@ -460,11 +413,11 @@ lemma demazure_not_multiplicative : ∀ (i : Fin n), ∃(p q : MvPolynomial (Fin
   use (X i)
   use C 1
   simp[Demazure, DemazureFun, DemazureNumerator, DemazureDenominator,
-   SwapVariables, SwapVariablesFun, Transposition, TranspositionFun,
+   SwapVariables, SwapVariablesFun, Equiv.swap_apply_def,
    fin_succ_ne_fin_castSucc, Fin.succ_ne_zero]
 
   rw[one_of_div_by_monic_self]
-  simp[AlgHom.map_one]
+  simp[map_one]
   exact Polynomial.monic_X_sub_C (X i)
 
 /- Doing anything with the definition, even simple things, requires a lot of work given

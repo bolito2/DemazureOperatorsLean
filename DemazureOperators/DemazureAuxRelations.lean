@@ -32,41 +32,54 @@ def NonAdjacent (i j : Fin n) : Prop :=
   (Fin.succ i : Fin (n + 1)) ≠ (Fin.castSucc j : Fin (n + 1)) ∧
   (Fin.succ i : Fin (n + 1)) ≠ (Fin.succ j : Fin (n + 1))
 
+lemma Equiv.swap_mul_eq_comp {a b c d k : Fin n} :
+(Equiv.swap a b * Equiv.swap c d) k = (Equiv.swap a b ∘ Equiv.swap c d) k := by
+  rfl
+
+lemma renameEquiv_swap_ext {a b c d : Fin n} { R : Type } [CommSemiring R] : rename (Equiv.swap a b * Equiv.swap c d) =
+  (rename (Equiv.swap a b ∘ Equiv.swap c d) : MvPolynomial (Fin n) R →ₐ[R] MvPolynomial (Fin n) R) := by
+  rfl
+
 -- Now prove that demazure operators with non-adjacent indices commute
-lemma transposition_commutes_non_adjacent (i j : Fin n) {k : Fin (n + 1)} (h : NonAdjacent i j) :
-  TranspositionFun (Fin.castSucc i) (Fin.succ i) (TranspositionFun (Fin.castSucc j) (Fin.succ j) k) =
-   TranspositionFun (Fin.castSucc j) (Fin.succ j) (TranspositionFun (Fin.castSucc i) (Fin.succ i) k) := by
+lemma transposition_commutes_non_adjacent (i j : Fin n) (h : NonAdjacent i j) :
+  Equiv.swap (Fin.castSucc i) (Fin.succ i) * Equiv.swap (Fin.castSucc j) (Fin.succ j) =
+   Equiv.swap (Fin.castSucc j) (Fin.succ j) * Equiv.swap (Fin.castSucc i) (Fin.succ i) := by
     rcases h with ⟨h1, h2, h3, h4⟩
 
-    by_cases c0 : k = Fin.castSucc i
-    simp[h1,h2,h3,h4,c0]
+    have h_disjoint : Equiv.Perm.Disjoint (Equiv.swap i.castSucc i.succ) (Equiv.swap j.castSucc j.succ) := by
+      intro k
+      apply or_iff_not_imp_left.mpr
+      intro h
 
-    by_cases c1 : k = Fin.succ i
-    simp[h1,h2,h3,h4,c1]
+      have heq : i ≠ j := by
+        intro h'
+        apply h1
+        simp[h']
 
-    by_cases c2 : k = Fin.castSucc j
-    simp[h1,h2,h3,h4,c2]
-    simp[transposition_none h2.symm h4.symm]
-    simp[transposition_none h1.symm h3.symm]
+      rcases Equiv.eq_or_eq_of_swap_apply_ne_self h with h | h
+      apply Equiv.swap_apply_of_ne_of_ne
 
-    by_cases c3 : k = Fin.succ j
-    simp[transposition_none h1.symm h3.symm, c3]
-    simp[transposition_none h2.symm h4.symm]
+      repeat
+        simp[h, heq, h1, h2, h3, h4, h1.symm, h2.symm, h3.symm, h4.symm]
 
-    simp[h1,h2,h3,h4,c0,c1,c2,c3]
+      apply Equiv.swap_apply_of_ne_of_ne h3 h4
+
+    rw[Equiv.Perm.Disjoint.commute h_disjoint]
 
 lemma transposition_commutes_non_adjacent' (i j : Fin n) (h : NonAdjacent i j) :
-  TranspositionFun (Fin.castSucc i) (Fin.succ i) ∘ (TranspositionFun (Fin.castSucc j) (Fin.succ j)) =
-   TranspositionFun (Fin.castSucc j) (Fin.succ j) ∘ (TranspositionFun (Fin.castSucc i) (Fin.succ i)) := by
-    funext k'
-    simp[transposition_commutes_non_adjacent i j h ]
+  Equiv.swap (Fin.castSucc i) (Fin.succ i) ∘ Equiv.swap (Fin.castSucc j) (Fin.succ j) =
+   Equiv.swap (Fin.castSucc j) (Fin.succ j) ∘ Equiv.swap (Fin.castSucc i) (Fin.succ i) := by
+    funext k
+    rw[← Equiv.swap_mul_eq_comp]
+    simp[transposition_commutes_non_adjacent i j h]
+
 
 lemma swap_variables_commutes_non_adjacent (i j : Fin n) (h : NonAdjacent i j)
  {p : MvPolynomial (Fin (n + 1)) ℂ} :
   SwapVariablesFun (Fin.castSucc i) (Fin.succ i) (SwapVariablesFun (Fin.castSucc j) (Fin.succ j) p) =
    SwapVariablesFun (Fin.castSucc j) (Fin.succ j) (SwapVariablesFun (Fin.castSucc i) (Fin.succ i) p) := by
-    simp[SwapVariablesFun, Transposition, Function.comp]
-    rw[transposition_commutes_non_adjacent' i j h]
+    simp[SwapVariablesFun, Function.comp]
+    simp[transposition_commutes_non_adjacent' i j h]
 
 lemma demaux_commutes_non_adjacent (i j : Fin n)  (h : NonAdjacent i j) : ∀ p : MvPolynomial (Fin (n + 1)) ℂ,
   (DemAux i ∘ DemAux j) (mk' p) = (DemAux j ∘ DemAux i) (mk' p) := by
@@ -108,7 +121,7 @@ lemma demaux_mul_monomial_adjacent (i : Fin n) (h : i + 1 < n) : ∀ p : MvPolyn
 lemma symm_invariant_swap_variables {i j : Fin n} {g : MvPolynomial (Fin n) ℂ} (h : MvPolynomial.IsSymmetric g) :
   SwapVariablesFun i j g = g := by
   simp[SwapVariablesFun]
-  exact h (Transposition i j)
+  exact h (Equiv.swap i j)
 
 /- Now we prove that symmetric polynomials act as scalars -/
 def IsSymmetric (p : PolyFraction n) : Prop := ∃p' : PolyFraction' n,
@@ -135,8 +148,10 @@ lemma demaux_mul_symm (i : Fin n) (g f : PolyFraction n) (h : IsSymmetric g) :
 
 -- Prove the relation between demazure operations with adjacent indices
 lemma transposition_commutes_adjacent {i : Fin n} {j : Fin (n + 1)} (h0 : i < n + 1) (h1 : i + 1 < n + 1) (h2 : i + 2 < n + 1) :
-  TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩ j)) =
-    TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ j)) := by
+  Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩ (Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩ j)) =
+    Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩ (Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ j)) := by
+  simp[Equiv.swap_apply_def]
+
   by_cases c0 : j = ⟨i, h0⟩
   simp[c0]
   by_cases c1 : j = ⟨i + 1, h1⟩
@@ -147,8 +162,8 @@ lemma transposition_commutes_adjacent {i : Fin n} {j : Fin (n + 1)} (h0 : i < n 
   simp[c0,c1,c2]
 
 lemma transposition_commutes_adjacent' {i : Fin n} (h0 : i < n + 1) (h1 : i + 1 < n + 1) (h2 : i + 2 < n + 1) :
-  TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩ ∘ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) ∘ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩) =
-    TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ ∘ (TranspositionFun ⟨i, h0⟩ ⟨i + 1, h1⟩) ∘ (TranspositionFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) := by
+  (Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩ ∘ (Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) ∘ (Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩) : Fin (n + 1) → Fin (n + 1)) =
+  Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ ∘ (Equiv.swap ⟨i, h0⟩ ⟨i + 1, h1⟩) ∘ (Equiv.swap ⟨i + 1, h1⟩ ⟨i + 2, h2⟩) := by
 
   funext j
   simp[transposition_commutes_adjacent h0 h1 h2]
@@ -156,7 +171,7 @@ lemma transposition_commutes_adjacent' {i : Fin n} (h0 : i < n + 1) (h1 : i + 1 
 lemma swap_variables_commutes_adjacent {i : Fin n} {p : MvPolynomial (Fin (n + 1)) ℂ} (h0 : i < n + 1) (h1 : i + 1 < n + 1) (h2 : i + 2 < n + 1) :
   SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ p)) =
     SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ (SwapVariablesFun ⟨i, h0⟩ ⟨i + 1, h1⟩ (SwapVariablesFun ⟨i + 1, h1⟩ ⟨i + 2, h2⟩ p)) := by
-  simp[SwapVariablesFun, Transposition, Function.comp]
+  simp[SwapVariablesFun]
   rw[transposition_commutes_adjacent' h0 h1 h2]
 
 @[simp]
