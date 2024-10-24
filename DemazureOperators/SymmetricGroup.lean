@@ -4,7 +4,7 @@ import Mathlib.GroupTheory.Perm.Cycle.Concrete
 namespace CoxeterSystem
 noncomputable section
 
-variable (n : ℕ) {hn : n ≥ 1}
+variable (n : ℕ)
 def M := CoxeterMatrix.Aₙ n
 def cs := (M n).toCoxeterSystem
 
@@ -131,55 +131,10 @@ theorem cardA0 : Nat.card (A 0) = 1 := by
 
 instance : Finite (A 0) := by
   infer_instance
-MatsumotoCondition
-def resMap_simple : Fin (n - 1) → withoutLast n :=
-  fun i => ⟨ (cs n).simple ⟨i, Nat.lt_of_lt_pred i.is_lt⟩, Subgroup.subset_closure (Set.mem_range_self _) ⟩
-
-lemma succthis (n : ℕ) (hn : n ≥ 1) (i : ℕ) (hi : i < n - 1) : i < n  := by
-  suffices i < n - 1 + 1 from by
-    simp[hn] at this
-    exact this
-  exact Nat.lt_add_right 1 hi
-
-def succ_of_pred (i : Fin (n - 1)) : Fin n := ⟨ i.val, succthis n hn i.val i.2 ⟩
-
-lemma resM_eq_M (i j : Fin (n - 1)) : M n (@succ_of_pred n hn i) (@succ_of_pred n hn j) = M (n - 1) i j := by
-  simp[M, CoxeterMatrix.Aₙ, succ_of_pred]
-  by_cases h1 : i = j
-  by_cases h2 : j.val + 1 = i.val ∨ i.val + 1 = j.val
-  repeat simp[h1, h2]
-  by_cases h2 : j.val + 1 = i.val ∨ i.val + 1 = j.val
-  repeat simp[h1, h2]
-  apply Fin.val_inj.ne.mpr h1
-  simp[h1, h2]
-  apply Fin.val_inj.ne.mpr h1
-
-def resMap_liftable : (M (n - 1)).IsLiftable (resMap_simple n) := by
-  intro i j
-  simp[resMap_simple]
-  rw[← resM_eq_M n i j]
-  simp[succ_of_pred, hn]
-  exact hn
-
-def resMap_lift : A (n - 1) → withoutLast n := lift (cs (n-1)) ⟨(resMap_simple n), (@resMap_liftable n hn)⟩
-def resMap_bij : A (n - 1) ≃ (withoutLast n) := by
-  apply Equiv.ofBijective (resMap_lift n)
 
 
-def subgroupequiv : withoutLast n ≃* A (n - 1) where
-  toFun := by
-
-
-  invFun := λ x => x.val
-  left_inv := by
-    intro x
-    simp
-  right_inv := by
-    intro x
-    simp
-  map_mul' := by
-    intro x y
-    simp
+def subgroupequiv : withoutLast n ≃* A (n - 1) := by
+  sorry
 
 lemma withoutLast_index_le_n_succ : (withoutLast n).index ≤ n + 1 ∧ (withoutLast n).index ≠ 0 := by
   sorry
@@ -205,8 +160,7 @@ theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) ∧ Nat.card 
     rw[Nat.factorial_succ]
 
     have : Nat.card (withoutLast (n + 1)) = Nat.card (A n) := by
-      apply Nat.card_eq_of_bijective (subgroupequiv (n + 1))
-      simp [MulEquiv.bijective]
+      sorry
 
     rw[this, mul_comm]
 
@@ -247,7 +201,7 @@ theorem S_cox_simple (i : Fin n) : (S_cox n).simple i = (Equiv.swap i.castSucc (
   rw[← f_equiv_apply_simple]
   rfl
 
-instance instOfMatsumotoReady : MatsumotoReady (S_cox n) where
+instance instOfMatsumotoReady : MatsumotoCondition (S_cox n) where
   one_le_M := by
     intro i j
     simp[M, CoxeterMatrix.Aₙ]

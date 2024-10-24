@@ -118,7 +118,8 @@ lemma demaux_mul_monomial_adjacent (i : Fin n) (h : i + 1 < n) : ∀ p : MvPolyn
   simp[DemAux', mul', add']
   ring
 
-lemma symm_invariant_swap_variables {i j : Fin n} {g : MvPolynomial (Fin n) ℂ} (h : MvPolynomial.IsSymmetric g) :
+lemma symm_invariant_swap_variables {i j : Fin n} {g : MvPolynomial (Fin n) ℂ}
+   (h : MvPolynomial.IsSymmetric g) :
   SwapVariablesFun i j g = g := by
   simp[SwapVariablesFun]
   exact h (Equiv.swap i j)
@@ -135,7 +136,7 @@ lemma demaux_mul_symm (i : Fin n) (g f : PolyFraction n) (h : IsSymmetric g) :
   rw[mk_mul]
   simp[DemAux]
   repeat rw[lift_r]
-
+  
   rw[← simp_mul']
   rw[← simp_mul]
   rw[mk_mul]
