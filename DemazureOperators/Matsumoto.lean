@@ -16,7 +16,7 @@ local prefix:100 "s" => cs.simple
 local prefix:100 "π" => cs.wordProd
 local prefix:100 "len" => cs.length
 
-class MatsumotoReady where
+class MatsumotoCondition where
   one_le_M : ∀ i j : B, 1 ≤ M i j
   alternatingWords_ne_one : ∀ (i j : B) (_ : i ≠ j) (p : ℕ) (_ : 0 < p) (_ : p < M i j), (s i * s j) ^ p ≠ 1
 
@@ -173,7 +173,7 @@ lemma leftDescent_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs
 lemma leftInversion_of_cons (i : B) (l : List B) (hr : cs.IsReduced (i :: l)) : cs.IsLeftInversion (π (i :: l)) (s i) :=
   (cs.isLeftInversion_simple_iff_isLeftDescent (π (i :: l)) i).mpr (cs.leftDescent_of_cons i l hr)
 
-theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
+theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoCondition cs]
  (i j : B) (p : ℕ) (hp : p < M i j) (hij : i ≠ j) :
   ∀ (k : ℕ) (hk : k < p) ,π (alternatingWord i j (p + 1)) ≠ π (alternatingWord i j p).eraseIdx k := by
   revert i j
@@ -242,7 +242,7 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
           simp[mul_comm, this]
         rw[this] at h_contra
 
-        apply MatsumotoReady.alternatingWords_ne_one i j hij (p + 1) zero_lt_p_succ _ h_contra
+        apply MatsumotoCondition.alternatingWords_ne_one i j hij (p + 1) zero_lt_p_succ _ h_contra
         linarith
 
       · have p_odd : ¬ Even (p + 2) := by
@@ -279,10 +279,10 @@ theorem alternatingWord_succ_ne_alternatingWord_eraseIdx [MatsumotoReady cs]
           ring
         rw[this] at h_contra
 
-        apply MatsumotoReady.alternatingWords_ne_one i j hij (p + 1) zero_lt_p_succ _ h_contra
+        apply MatsumotoCondition.alternatingWords_ne_one i j hij (p + 1) zero_lt_p_succ _ h_contra
         linarith
 
-lemma prefix_braidWord_aux [MatsumotoReady cs]
+lemma prefix_braidWord_aux [MatsumotoCondition cs]
 (w : W) (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (hil : π (i :: l) = w) (hjl' : π (j :: l') = w)
  (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
  ∀ (p : ℕ) (_ : p ≤ M i j), ∃ t : List B, π (alternatingWord i j p ++ t) = w ∧ cs.IsReduced (alternatingWord i j p ++ t) := by
@@ -431,7 +431,7 @@ lemma prefix_braidWord_aux [MatsumotoReady cs]
         simp[k_lt_len]
 
 
-lemma prefix_braidWord [MatsumotoReady cs] (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l'))
+lemma prefix_braidWord [MatsumotoCondition cs] (l l' : List B) (i j : B) (i_ne_j : i ≠ j) (pi_eq : π (i :: l) = π (j :: l'))
 (hr : cs.IsReduced (i :: l)) (hr' : cs.IsReduced (j :: l')) :
   ∃ t : List B, π (i :: l) = π (braidWord M i j ++ t) ∧ cs.IsReduced (braidWord M i j ++ t) := by
   have h : M i j ≤ M i j := by linarith
@@ -508,7 +508,7 @@ lemma matsumoto_reduced_inductionStep_of_firstLetterEq (p : ℕ) (l_t l'_t : Lis
   rw[braidMoveSequence_cons]
   use (List.map cs.shift_braidMove bms)
 
-theorem matsumoto_reduced_aux [MatsumotoReady cs] (p : ℕ) (l l' : List B)
+theorem matsumoto_reduced_aux [MatsumotoCondition cs] (p : ℕ) (l l' : List B)
 (len_l_eq_p : l.length = p) (len_l'_eq_p : l'.length = p)
 (l_reduced : cs.IsReduced l) (l'_reduced : cs.IsReduced l') (h_eq : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
@@ -539,7 +539,7 @@ theorem matsumoto_reduced_aux [MatsumotoReady cs] (p : ℕ) (l l' : List B)
 
     · obtain ⟨m, hm⟩ : ∃ m : ℕ ,M i j = m + 1 := by
         use M i j - 1
-        simp[MatsumotoReady.one_le_M cs i j]
+        simp[MatsumotoCondition.one_le_M cs i j]
 
       have hm' : M j i = m + 1 := by
         simp[M.symmetric]
@@ -753,7 +753,8 @@ theorem matsumoto_reduced_aux [MatsumotoReady cs] (p : ℕ) (l l' : List B)
         exact ih'
 
 
-theorem matsumoto_reduced [MatsumotoReady cs] (l l' : List B) (hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
+theorem matsumoto_reduced [MatsumotoCondition cs] (l l' : List B)
+(hr : cs.IsReduced l) (hr' : cs.IsReduced l') (h : π l = π l') :
   ∃ bms : List (cs.BraidMove), cs.apply_braidMoveSequence bms l = l' := by
   apply cs.matsumoto_reduced_aux (l.length) l l' rfl _ hr hr' h
   calc

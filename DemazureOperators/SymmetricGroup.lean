@@ -131,7 +131,7 @@ theorem cardA0 : Nat.card (A 0) = 1 := by
 
 instance : Finite (A 0) := by
   infer_instance
-
+MatsumotoCondition
 def resMap_simple : Fin (n - 1) → withoutLast n :=
   fun i => ⟨ (cs n).simple ⟨i, Nat.lt_of_lt_pred i.is_lt⟩, Subgroup.subset_closure (Set.mem_range_self _) ⟩
 
@@ -164,7 +164,7 @@ def resMap_liftable : (M (n - 1)).IsLiftable (resMap_simple n) := by
 def resMap_lift : A (n - 1) → withoutLast n := lift (cs (n-1)) ⟨(resMap_simple n), (@resMap_liftable n hn)⟩
 def resMap_bij : A (n - 1) ≃ (withoutLast n) := by
   apply Equiv.ofBijective (resMap_lift n)
-  
+
 
 def subgroupequiv : withoutLast n ≃* A (n - 1) where
   toFun := by

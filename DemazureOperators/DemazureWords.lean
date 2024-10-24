@@ -13,7 +13,7 @@ noncomputable section
 variable {n : ℕ}
 def Symm (n : ℕ) := CoxeterSystem.S_cox n
 
-instance : MatsumotoReady (Symm n) := instOfMatsumotoReady n
+instance : MatsumotoCondition (Symm n) := instOfMatsumotoReady n
 
 local prefix:100 "s" => (Symm n).simple
 local prefix:100 "π" => (Symm n).wordProd
