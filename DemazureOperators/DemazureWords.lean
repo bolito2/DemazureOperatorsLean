@@ -70,25 +70,24 @@ DemazureOfWord l = DemazureOfWord ((Symm n).apply_braidMove bm l) := by
     | 0 =>
       simp[apply_braidMove]
       by_cases h : List.take (M n i j) (i' :: l) = braidWord (M n) i j
-      · simp[h]
-        nth_rewrite 1 [← List.take_append_drop (M n i j) (i' :: l)]
+      · nth_rewrite 1 [← List.take_append_drop (M n i j) (i' :: l)]
+        simp[h]
         rw[demazureOfWord_append]
         rw[demazureOfWord_append]
-        suffices DemazureOfWord (List.take (M n i j) (i' :: l)) = DemazureOfWord (braidWord (M n) j i) from by
+        suffices DemazureOfWord (braidWord (M n) i j) = DemazureOfWord (braidWord (M n) j i) from by
           rw[this]
-        rw[h]
 
         simp[braidWord]
         by_cases h_eq : i = j
         · simp[h_eq]
 
-        by_cases h_adjacent : NonAdjacent i j
-        · have j_ne_i : ¬ j = i := by
+        have j_ne_i : ¬ j = i := by
             intro h
             rw[h] at h_eq
             contradiction
 
-          rcases h_adjacent with ⟨_, h2, h3, _⟩
+        by_cases h_adjacent : NonAdjacent i j
+        · obtain ⟨_, h2, h3, _⟩ := by exact h_adjacent
           simp at h2 h3
 
           have h2' := not_imp_not.mpr Fin.eq_of_val_eq h2
@@ -100,21 +99,9 @@ DemazureOfWord l = DemazureOfWord ((Symm n).apply_braidMove bm l) := by
           simp[alternatingWord, DemazureOfWord, Demazure, LinearMap.comp, Function.comp]
 
           funext p
-          apply demazure_commutes_non_adjacent i j
-          simp[NonAdjacent]
-          constructor
-          · exact h_eq
-          constructor
-          · exact h2
-          constructor
-          · exact h3
-          exact h_eq
+          apply demazure_commutes_non_adjacent i j h_adjacent p
 
-        · have j_ne_i : ¬ j = i := by
-            intro h
-            rw[h] at h_eq
-            contradiction
-          have h_adjacent' : j.val + 1 = i.val ∨ i.val + 1 = j.val := by
+        · have h_adjacent' : j.val + 1 = i.val ∨ i.val + 1 = j.val := by
             rw[NonAdjacent] at h_adjacent
             simp at h_adjacent
             by_contra h_contra
@@ -143,6 +130,7 @@ DemazureOfWord l = DemazureOfWord ((Symm n).apply_braidMove bm l) := by
             have h1' : ⟨j.val + 1, hj⟩  = i := by
               apply Fin.ext
               simp[h1]
+
             rw[← h1']
             funext p
             exact demazure_commutes_adjacent j hj p
@@ -183,5 +171,6 @@ theorem DemazureOfWord_eq_equivalentWord (l l' : List (Fin n)) (h_eq : π l = π
 
   exact (Symm n).matsumoto_reduced l l' hr hr' h_eq
 
-def DemazureOfProd (w : S (n + 1)) : LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
+def DemazureOfProd (w : S (n + 1)) :
+LinearMap (RingHom.id ℂ) (MvPolynomial (Fin (n + 1)) ℂ) (MvPolynomial (Fin (n + 1)) ℂ) :=
   DemazureOfWord (Classical.choose ((Symm n).exists_reduced_word' w))
