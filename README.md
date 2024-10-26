@@ -1,6 +1,6 @@
 # Demazure Operators and Lean
 
-This project formalizes the definition of Demazure operators and some fundamental properties of Coxeter groups. It is part of my Master's thesis, *Demazure Operators and Lean*, submitted to the University of Bonn. The full manuscript can be found in the file `master_thesis.pdf` or downloaded [here](https://github.com/user-attachments/files/17529925/master_thesis.pdf).
+This project formalizes the definition of Demazure operators and some fundamental properties of Coxeter groups. It is part of my Master's thesis, *Demazure Operators and Lean*, submitted to the University of Bonn. The full manuscript can be found in the file `master_thesis.pdf` or downloaded [here](https://github.com/bolito2/DemazureOperatorsLean/blob/b98a475967a904af0ab9471b86e1d3ccc8d223a2/master_thesis.pdf).
 
 The documentation for the Lean code can be viewed at [demazure-docs](https://bolito2.github.io/DemazureOperatorsLean/DemazureOperators/Demazure.html) or built locally following the instructions below.
 
