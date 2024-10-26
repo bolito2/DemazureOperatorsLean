@@ -9,7 +9,7 @@ def M := CoxeterMatrix.Aₙ n
 def cs := (M n).toCoxeterSystem
 
 abbrev S (n : ℕ) := Equiv.Perm (Fin n)
-abbrev A (n : ℕ) := (M n).Group
+abbrev S' (n : ℕ) := (M n).Group
 instance : Group (S (n + 1)) := Equiv.Perm.permGroup
 
 def f_simple : Fin n → S (n + 1) :=
@@ -116,81 +116,11 @@ theorem f_surjective : Function.Surjective (f n) := by
   simp[f_apply_simple]
 
 
-def withoutLast := Subgroup.closure (Set.range fun (i : Fin (n - 1)) ↦ (cs n).simple ⟨i, Nat.lt_of_lt_pred i.is_lt⟩)
-def minLengthWord := (Set.range fun y : (withoutLast n) ↦ (cs n).length y)
-
-instance : Subsingleton (FreeGroup (Fin 0)) := by
-  infer_instance
-
-instance : Subsingleton (A 0) := by
-  simp[A, CoxeterMatrix.Group, PresentedGroup]
-  apply Quotient.instSubsingletonQuotient
-
-theorem cardA0 : Nat.card (A 0) = 1 := by
-  exact Nat.card_unique
-
-instance : Finite (A 0) := by
-  infer_instance
-
-
-def subgroupequiv : withoutLast n ≃* A (n - 1) := by
-  sorry
-
-lemma withoutLast_index_le_n_succ : (withoutLast n).index ≤ n + 1 ∧ (withoutLast n).index ≠ 0 := by
-  sorry
-
-theorem card_symm_eq_factorial : Nat.card (S n) = Nat.factorial n := by
-  simp[S]
-  rw[Fintype.card_perm]
-  simp
-
-theorem card_An_le_card_Sn : Nat.card (A n) ≤ Nat.card (S (n+1)) ∧ Nat.card (A n) ≠ 0 := by
-  rw[card_symm_eq_factorial (n + 1)]
-
-  induction n
-  case zero =>
-    constructor
-    simp only [Nat.factorial]
-    ring
-    rw[cardA0]
-    simp
-  case succ n ih =>
-    rw[A]
-    rw[← Subgroup.card_mul_index (withoutLast (n + 1))]
-    rw[Nat.factorial_succ]
-
-    have : Nat.card (withoutLast (n + 1)) = Nat.card (A n) := by
-      sorry
-
-    rw[this, mul_comm]
-
-    constructor
-    apply Nat.mul_le_mul
-    · exact (withoutLast_index_le_n_succ (n + 1)).left
-    · exact ih.left
-
-    exact Nat.mul_ne_zero (withoutLast_index_le_n_succ (n + 1)).right ih.right
-
-instance : Finite (A n) := by
-  induction n
-  case zero => infer_instance
-  case succ n _ =>
-    apply Nat.finite_of_card_ne_zero
-    exact (card_An_le_card_Sn (n + 1)).right
-
-
-theorem card_An_eq_card_Sn : Nat.card (A n) = Nat.card (S (n+1)) := by
-  apply Nat.le_antisymm
-  · exact (card_An_le_card_Sn n).left
-  · exact Nat.card_le_card_of_surjective (f n) (f_surjective n)
-
-theorem f_bijective : Function.Bijective (f n) := by
-  apply (Function.Surjective.bijective_of_nat_card_le (f_surjective n) _)
-  exact (card_An_le_card_Sn n).left
-
-def f_equiv : (A n) ≃* S (n + 1) := by
+def f_equiv : (S' n) ≃* S (n + 1) := by
   apply MulEquiv.ofBijective (f n)
-  exact f_bijective n
+  constructor
+  · sorry
+  · exact f_surjective n
 
 theorem f_equiv_apply_simple (i : Fin n) : (f_equiv n) ((cs n).simple i) = Equiv.swap i.castSucc i.succ := by
   simp[f_equiv, f_apply_simple]
@@ -243,19 +173,24 @@ instance instOfMatsumotoReady : MatsumotoCondition (S_cox n) where
       have : p = 1 := by
         linarith
       simp[this]
+
       intro h_contra
 
       have h_swap : (Equiv.swap i.castSucc i.succ * Equiv.swap j.castSucc j.succ) j = j.succ := by
-        simp[Equiv.swap_apply_of_ne_of_ne, hij, h1]
-        apply Equiv.swap_apply_of_ne_of_ne
-        intro h
-        simp at h1
-        apply Fin.ext_iff.mp at h
-        simp at h
-        simp[h] at h1
-        intro h
-        apply Fin.succ_inj.mp at h
-        apply hij h.symm
+        calc (Equiv.swap i.castSucc i.succ * Equiv.swap j.castSucc j.succ) j =
+         Equiv.swap i.castSucc i.succ (Equiv.swap j.castSucc j.succ j) := by rfl
+         _ = Equiv.swap i.castSucc i.succ j.succ := by
+           simp[h1]
+          _ = j.succ := by
+            apply Equiv.swap_apply_of_ne_of_ne
+            intro h
+            simp at h1
+            apply Fin.ext_iff.mp at h
+            simp at h
+            simp[h] at h1
+            intro h
+            apply Fin.succ_inj.mp at h
+            apply hij h.symm
 
       rw[h_contra] at h_swap
       simp at h_swap
