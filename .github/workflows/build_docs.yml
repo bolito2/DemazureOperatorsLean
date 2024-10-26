@@ -39,9 +39,12 @@ jobs:
             - name: build docs with doc-gen4
               run: lake -R -Kenv=dev build DemazureOperators:docs
 
+            - name: move manuscript to docs
+              run: cp master_thesis.pdf .lake/build/doc
+
             - name: Setup Pages
               uses: actions/configure-pages@v5
-
+            
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
               with:
