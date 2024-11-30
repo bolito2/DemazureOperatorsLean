@@ -71,7 +71,7 @@ lemma Odd.add_one : Odd n → Even (n + 1) := by
     apply Nat.Odd.sub_odd h3 h2
   simp at contra1
 
-lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
+private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
     (alternatingWord i j p)[k] = (if Even (p + k) then i else j) := by
   induction p with
   | zero =>
@@ -105,7 +105,7 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j
       simp
       ring
       have (m : ℕ) : Even (2 + m) ↔ Even m := by
-        have aux : m ≤ 2 + m := by linarith
+        have aux : m ≤ 2 + m := by omega
         apply (Nat.even_sub aux).mp
         simp
       by_cases h_even : Even (n + k)
@@ -118,29 +118,29 @@ lemma getElem_alternatingWord (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j
         rw[← Nat.add_assoc 2 n k] at h_even
         simp [if_neg h_even]
 
-lemma getElem_alternatingWord' (i j : B) (p k : ℕ) (h : k < p) :
+lemma getElem_alternatingWord (i j : B) (p k : ℕ) (h : k < p) :
   (alternatingWord i j p)[k]'(by simp; exact h) =  (if Even (p + k) then i else j) := by
   have h' : k < (alternatingWord i j p).length := by simp; exact h
   let k' : Fin ((alternatingWord i j p).length) := ⟨k, h'⟩
   suffices (alternatingWord i j p)[k'] = (if Even (p + k) then i else j) from by
     simp at this
     exact this
-  rw[getElem_alternatingWord i j p k']
+  rw[getElem_alternatingWord_aux i j p k']
 
 lemma lt_of_lt_plus_one (k n : ℕ) (h : k + 1 < n) : k < n := by linarith
 lemma alternatingWordLength_eq_reverse_alternatingWordLength (i j : B) (p : ℕ) :
 (alternatingWord i j p).length = (alternatingWord j i p).length := by simp
 
-lemma centralS_equal_swapping_indices (i j : B) (p k : ℕ) (h : k + 1 < (alternatingWord i j p).length) :
-   (alternatingWord i j p)[k+1] =
+lemma centralS_equal_swapping_indices (i j : B) (p k : ℕ) (h : k + 1 < p) :
+   (alternatingWord i j p)[k+1]'(by simp; exact h) =
    (alternatingWord j i p)[k]'(
-    by apply lt_of_lt_plus_one k ((alternatingWord j i p).length); simp at h; simp [h]
+    by apply lt_of_lt_plus_one k ((alternatingWord j i p).length); simp [h]
   ) := by
-  let h' := getElem_alternatingWord i j p ⟨k+1, h⟩
+  let h' := getElem_alternatingWord i j p (k+1) (by simp[h])
   simp at h'
   rw[ h' ]
 
-  let h'' := getElem_alternatingWord j i p ⟨k, by apply lt_of_lt_plus_one k ((alternatingWord j i p).length); simp at h; simp [h]⟩
+  let h'' := getElem_alternatingWord j i p k (by apply lt_of_lt_plus_one k p; simp [h])
   simp at h''
 
   rw[h'']
@@ -196,15 +196,12 @@ lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
         rw[alternatingWord_succ]
         rw[← hk]
         apply congr_arg
-        let k' : Fin (alternatingWord i j (2 * p)).length := ⟨k, by simp; exact lt_of_lt_plus_one k (2*p) h ⟩
-        suffices (alternatingWord i j (2 * p))[k'] = i from by
-          simp[k'] at this
-          exact this
-        rw[getElem_alternatingWord i j (2*p) k' ]
+        rw[getElem_alternatingWord i j (2*p) k]
         have : Even (2 * p + k) := by
           apply Nat.even_add.mpr
           simp[h_even]
         simp[this]
+        omega
       · simp [h_even] at hk
         have h_odd : Even (k + 1) := by
           simp at h_even
@@ -214,17 +211,15 @@ lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
         rw[alternatingWord_succ]
         rw[← hk]
         apply congr_arg
-        let k' : Fin (alternatingWord i j (2 * p)).length := ⟨k, by simp; exact lt_of_lt_plus_one k (2*p) h ⟩
-        suffices (alternatingWord i j (2 * p))[k'] = j from by
-          simp[k'] at this
-          exact this
-        rw[getElem_alternatingWord i j (2*p) k' ]
+        rw[getElem_alternatingWord i j (2*p) k ]
 
         have : ¬ Even (2 * p + k) := by
           simp
           apply Nat.odd_add.mpr
           simp[h_even]
         simp[this]
+
+        omega
 
 
 lemma list_take_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
@@ -270,6 +265,7 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
   rw [h_take]
   simp [mul_assoc]
   rw[centralS_equal_swapping_indices i j (2 * p) k]
+  exact h
 
 theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
   (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k, by simp; linarith ⟩ = π alternatingWord j i (2 * k + 1)  := by
@@ -284,7 +280,7 @@ theorem alternatingWord_of_get_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k
     rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j (2 * p)) ⟨0, by simp[p_gt_0]⟩]
     simp[leftInvSeq]
     apply congr_arg
-    rw[getElem_alternatingWord' i j (2 * p) 0 (by simp[p_gt_0])]
+    rw[getElem_alternatingWord i j (2 * p) 0 (by simp[p_gt_0])]
     simp
   | succ k hk =>
     intro i j
