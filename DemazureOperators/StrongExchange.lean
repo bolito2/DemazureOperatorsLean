@@ -80,7 +80,6 @@ private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alterna
   | succ n h =>
     revert k
     rw [alternatingWord_succ' i j n]
-
     rintro ⟨k, hk⟩
 
     induction k with
@@ -103,7 +102,7 @@ private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alterna
       simp at h
       rw[h ⟨k, this⟩ ]
       simp
-      ring
+      ring_nf
       have (m : ℕ) : Even (2 + m) ↔ Even m := by
         have aux : m ≤ 2 + m := by omega
         apply (Nat.even_sub aux).mp
@@ -119,13 +118,10 @@ private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alterna
         simp [if_neg h_even]
 
 lemma getElem_alternatingWord (i j : B) (p k : ℕ) (h : k < p) :
-  (alternatingWord i j p)[k]'(by simp; exact h) =  (if Even (p + k) then i else j) := by
-  have h' : k < (alternatingWord i j p).length := by simp; exact h
-  let k' : Fin ((alternatingWord i j p).length) := ⟨k, h'⟩
-  suffices (alternatingWord i j p)[k'] = (if Even (p + k) then i else j) from by
-    simp at this
-    exact this
-  rw[getElem_alternatingWord_aux i j p k']
+    (alternatingWord i j p)[k]'(by simp; exact h) =  (if Even (p + k) then i else j) := by
+  have h' : k < (alternatingWord i j p).length := by simp[h]
+  rw[← getElem_alternatingWord_aux i j p ⟨k, h'⟩]
+  simp
 
 lemma lt_of_lt_plus_one (k n : ℕ) (h : k + 1 < n) : k < n := by linarith
 lemma alternatingWordLength_eq_reverse_alternatingWordLength (i j : B) (p : ℕ) :
