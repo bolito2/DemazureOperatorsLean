@@ -118,7 +118,7 @@ lemma getElem_alternatingWord_swapIndices (i j : B) (p k : ℕ) (h : k + 1 < p) 
   · rw [if_neg h_even, ← add_assoc]
     simp [Odd.add_one (Nat.not_even_iff_odd.mp h_even)]
 
-theorem getElem_leftInvSeq (l : List B) (j : ℕ) (h : j < l.length) :
+lemma getElem_leftInvSeq (l : List B) (j : ℕ) (h : j < l.length) :
     (cs.leftInvSeq l)[j]'(by simp[h]) =
     cs.wordProd (List.take j l) * s l[j] * (cs.wordProd (List.take j l))⁻¹ := by
   rw [← List.getD_eq_getElem (cs.leftInvSeq l) 1, getD_leftInvSeq]
@@ -138,7 +138,6 @@ lemma listTake_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
       · simp [h_even] at hk
         simp [h_even, Nat.not_even_iff_odd.mpr (Even.add_one h_even)]
         rw[← List.take_concat_get, alternatingWord_succ, ← hk]
-
         apply congr_arg
         rw[getElem_alternatingWord i j (2*p) k]
         simp[(by apply Nat.even_add.mpr; simp[h_even]: Even (2 * p + k))]
@@ -162,7 +161,8 @@ lemma listTake_succ_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2
   · simp [h_even, (by simp at h_even; exact Odd.add_one h_even: Even (k + 1)),
     alternatingWord_succ', h_even]
 
-lemma getElem_succ_leftInvSeq_eq_conj_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+lemma getElem_succ_leftInvSeq_alternatingWord
+    (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k + 1]'(by simp; exact h) =
     MulAut.conj (s i) ((leftInvSeq cs (alternatingWord j i (2 * p)))[k]'(by simp; linarith)) := by
   rw [cs.getElem_leftInvSeq (alternatingWord i j (2 * p)) (k + 1),
@@ -173,7 +173,7 @@ lemma getElem_succ_leftInvSeq_eq_conj_alternatingWord (i j : B) (p : ℕ) (k : �
   rw[getElem_alternatingWord_swapIndices i j (2 * p) k]
   omega
 
-theorem getElem_leftInvSeq_alternatingWord_eq_alternatingWord
+theorem getElem_leftInvSeq_alternatingWord
     (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k]'(by simp; linarith) =
     π alternatingWord j i (2 * k + 1) := by
@@ -187,7 +187,7 @@ theorem getElem_leftInvSeq_alternatingWord_eq_alternatingWord
     simp[getElem_alternatingWord i j (2 * p) 0 (by simp[h])]
   | succ k hk =>
     intro i j
-    simp[getElem_succ_leftInvSeq_eq_conj_alternatingWord cs i j p k h, hk (by omega),
+    simp[getElem_succ_leftInvSeq_alternatingWord cs i j p k h, hk (by omega),
     alternatingWord_succ' j i, wordProd_cons]
     rw[(by ring: 2 * (k + 1) = 2 * k + 1 + 1), alternatingWord_succ j i, wordProd_concat]
     simp[mul_assoc]
@@ -196,8 +196,8 @@ lemma leftInvSeq_repeats : ∀ (k : ℕ) (h : k < M i j),
 (cs.leftInvSeq (alternatingWord i j (2 * M i j)))[M i j + k]'(by simp[h]; linarith)   =
 (cs.leftInvSeq (alternatingWord i j (2 * M i j)))[k]'(by simp[h]; linarith) := by
   intro k h'
-  rw[getElem_leftInvSeq_alternatingWord_eq_alternatingWord cs i j (M i j) k]
-  rw[getElem_leftInvSeq_alternatingWord_eq_alternatingWord cs i j (M i j) ((M i j)+k)]
+  rw[getElem_leftInvSeq_alternatingWord cs i j (M i j) k]
+  rw[getElem_leftInvSeq_alternatingWord cs i j (M i j) ((M i j)+k)]
   rw[cs.prod_alternatingWord_eq_mul_pow]
   rw[cs.prod_alternatingWord_eq_mul_pow]
 
