@@ -162,7 +162,7 @@ lemma listTake_succ_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2
   · simp [h_even, (by simp at h_even; exact Odd.add_one h_even: Even (k + 1)),
     alternatingWord_succ', h_even]
 
-lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+lemma getElem_succ_leftInvSeq_eq_conj_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k + 1]'(by simp; exact h) =
     MulAut.conj (s i) ((leftInvSeq cs (alternatingWord j i (2 * p)))[k]'(by simp; linarith)) := by
   rw [cs.getElem_leftInvSeq (alternatingWord i j (2 * p)) (k + 1),
@@ -173,50 +173,31 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
   rw[getElem_alternatingWord_swapIndices i j (2 * p) k]
   omega
 
-theorem alternatingWord_of_get_leftInvSeq_eq_alternatingWord
+theorem getElem_leftInvSeq_alternatingWord_eq_alternatingWord
     (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k]'(by simp; linarith) =
     π alternatingWord j i (2 * k + 1) := by
-  have p_gt_0 : 2 * p > 0 := by linarith
-
   revert i j
   induction k with
   | zero =>
     intro i j
-    simp[alternatingWord]
-    rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * p))) ⟨0, by simp[p_gt_0]⟩ ]
-    rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j (2 * p)) ⟨0, by simp[p_gt_0]⟩]
-    simp[leftInvSeq]
+    simp[alternatingWord,
+      CoxeterSystem.getElem_leftInvSeq cs (alternatingWord i j (2 * p)) 0 (by simp[h])]
     apply congr_arg
-    rw[getElem_alternatingWord i j (2 * p) 0 (by simp[p_gt_0])]
-    simp
+    simp[getElem_alternatingWord i j (2 * p) 0 (by simp[h])]
   | succ k hk =>
     intro i j
-    have h'' : k < 2 * p := by linarith
-    have h_ind : (cs.leftInvSeq (alternatingWord j i (2 * p))).get ⟨k, by simp; exact h''⟩ = cs.wordProd (alternatingWord i j (2 * k + 1)) := by
-      apply hk h''
-    rw[leftInvSeq_alternatingWord_induction cs i j p k h]
-    rw[h_ind]
-    simp
-    rw[alternatingWord_succ' j i]
-    simp[wordProd_cons]
-    have : 2 * (k + 1) = 2 * k + 1 + 1 := by ring
-    rw[this]
-    rw[alternatingWord_succ j i]
-    rw[wordProd_concat]
+    simp[getElem_succ_leftInvSeq_eq_conj_alternatingWord cs i j p k h, hk (by omega),
+    alternatingWord_succ' j i, wordProd_cons]
+    rw[(by ring: 2 * (k + 1) = 2 * k + 1 + 1), alternatingWord_succ j i, wordProd_concat]
     simp[mul_assoc]
-
-theorem alternatingWord_of_getElem_leftInvSeq_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
-  (leftInvSeq cs (alternatingWord i j (2 * p)))[k]'(by simp; linarith) = π alternatingWord j i (2 * k + 1)  := by
-  rw[← List.get_eq_getElem (cs.leftInvSeq (alternatingWord i j (2 * p))) ⟨k, by simp; linarith⟩]
-  exact alternatingWord_of_get_leftInvSeq_eq_alternatingWord cs i j p k h
 
 lemma leftInvSeq_repeats : ∀ (k : ℕ) (h : k < M i j),
 (cs.leftInvSeq (alternatingWord i j (2 * M i j)))[M i j + k]'(by simp[h]; linarith)   =
 (cs.leftInvSeq (alternatingWord i j (2 * M i j)))[k]'(by simp[h]; linarith) := by
   intro k h'
-  rw[alternatingWord_of_getElem_leftInvSeq_alternatingWord cs i j (M i j) k]
-  rw[alternatingWord_of_getElem_leftInvSeq_alternatingWord cs i j (M i j) ((M i j)+k)]
+  rw[getElem_leftInvSeq_alternatingWord_eq_alternatingWord cs i j (M i j) k]
+  rw[getElem_leftInvSeq_alternatingWord_eq_alternatingWord cs i j (M i j) ((M i j)+k)]
   rw[cs.prod_alternatingWord_eq_mul_pow]
   rw[cs.prod_alternatingWord_eq_mul_pow]
 
