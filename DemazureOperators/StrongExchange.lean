@@ -123,9 +123,6 @@ lemma getElem_alternatingWord (i j : B) (p k : ℕ) (h : k < p) :
   rw[← getElem_alternatingWord_aux i j p ⟨k, h'⟩]
   simp
 
-lemma alternatingWordLength_eq_reverse_alternatingWordLength (i j : B) (p : ℕ) :
-(alternatingWord i j p).length = (alternatingWord j i p).length := by simp
-
 lemma getElem_alternatingWord_swapIndices (i j : B) (p k : ℕ) (h : k + 1 < p) :
    (alternatingWord i j p)[k+1]'(by simp; exact h) =
    (alternatingWord j i p)[k]'(
