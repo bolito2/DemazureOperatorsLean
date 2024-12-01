@@ -172,31 +172,15 @@ lemma listTake_of_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
         omega
 
 
-lemma list_take_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
-  List.take (k + 1) (alternatingWord i j (2 * p)) = i :: (List.take k (alternatingWord j i (2 * p))) := by
-
-  have h' : k < 2 * p := by omega
+lemma listTake_succ_of_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+    List.take (k + 1) (alternatingWord i j (2 * p)) =
+    i :: (List.take k (alternatingWord j i (2 * p))) := by
+  rw[listTake_of_alternatingWord j i k (by omega), listTake_of_alternatingWord i j (k+1) h]
 
   by_cases h_even : Even k
-  · rw[listTake_of_alternatingWord j i k h']
-    rw[listTake_of_alternatingWord i j (k+1) h]
-    have h_odd : ¬ Even (k + 1) := by
-      simp
-      exact Even.add_one h_even
-
-    simp [h_even, h_odd]
-    rw[alternatingWord_succ']
-    simp[h_even]
-
-  · rw[listTake_of_alternatingWord j i k h']
-    rw[listTake_of_alternatingWord i j (k+1) h]
-    have h_odd : Even (k + 1) := by
-      simp at h_even
-      exact Odd.add_one h_even
-
-    simp [h_even, h_odd]
-    rw[alternatingWord_succ']
-    simp[h_even]
+  · simp [h_even, Nat.not_even_iff_odd.mpr (Even.add_one h_even), alternatingWord_succ', h_even]
+  · simp [h_even, (by simp at h_even; exact Odd.add_one h_even: Even (k + 1)),
+    alternatingWord_succ', h_even]
 
 lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p))).get ⟨k + 1, by simp; exact h⟩ =
@@ -208,7 +192,7 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
 
   have h_take : cs.wordProd (List.take (k + 1) (alternatingWord i j (2 * p))) = cs.simple i *
       (cs.wordProd (List.take k (alternatingWord j i (2 * p)))) := by
-    rw [list_take_induction i j p k h]
+    rw [listTake_succ_of_alternatingWord i j p k h]
     rw [cs.wordProd_cons]
 
   rw [h_take]
