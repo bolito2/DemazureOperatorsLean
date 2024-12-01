@@ -125,28 +125,14 @@ lemma getElem_alternatingWord (i j : B) (p k : ℕ) (h : k < p) :
 
 lemma getElem_alternatingWord_swapIndices (i j : B) (p k : ℕ) (h : k + 1 < p) :
    (alternatingWord i j p)[k+1]'(by simp; exact h) =
-   (alternatingWord j i p)[k]'(
-    by simp [h]; omega
-  ) := by
-  let h' := getElem_alternatingWord i j p (k+1) (by simp[h])
-  simp at h'
-  rw[ h' ]
-
-  let h'' := getElem_alternatingWord j i p k (by omega)
-  simp at h''
-
-  rw[h'']
+   (alternatingWord j i p)[k]'(by simp [h]; omega) := by
+  rw[ getElem_alternatingWord i j p (k+1) (by omega), getElem_alternatingWord j i p k (by omega)]
 
   by_cases h_even : Even (p + k)
-  · simp[if_pos h_even]
-    rw[← add_assoc]
-    apply Even.add_one at h_even
-    simp [h_even]
-  · simp [if_neg h_even]
-    rw[← add_assoc]
-    simp at h_even
-    apply Odd.add_one at h_even
-    simp [h_even]
+  · rw[if_pos h_even, ← add_assoc]
+    simp [Even.add_one h_even]
+  · rw [if_neg h_even, ← add_assoc]
+    simp [Odd.add_one (Nat.not_even_iff_odd.mp h_even)]
 
 theorem get_leftInvSeq (l : List B) (j : Fin l.length) :
   (cs.leftInvSeq l).get ⟨j, by simp⟩ =
