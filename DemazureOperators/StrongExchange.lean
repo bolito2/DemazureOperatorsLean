@@ -71,7 +71,8 @@ lemma Odd.add_one : Odd n → Even (n + 1) := by
     apply Nat.Odd.sub_odd h3 h2
   simp at contra1
 
-private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alternatingWord i j p).length)) :
+private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ)
+    (k : Fin ((alternatingWord i j p).length)) :
     (alternatingWord i j p)[k] = (if Even (p + k) then i else j) := by
   induction p with
   | zero =>
@@ -82,46 +83,29 @@ private lemma getElem_alternatingWord_aux (i j : B) (p : ℕ) (k : Fin ((alterna
     rw [alternatingWord_succ' i j n]
     rintro ⟨k, hk⟩
 
-    induction k with
-    | zero =>
+    match k with
+    | 0 =>
       by_cases h2 : Even n
-      · have : ¬ Even (n + 1) := by
-          simp
-          exact Even.add_one h2
-        simp [h2, this]
-      · have : Even (n + 1) := by
-          simp at h2
-          exact Odd.add_one h2
-        simp [h2, this]
-    | succ k _ =>
-      have : k < (alternatingWord i j n).length := by
-        simp
-        simp at hk
-        exact hk
+      · simp [h2, (by simp[Even.add_one, h2]: ¬ Even (n + 1))]
+      · simp [h2, Odd.add_one (Nat.not_even_iff_odd.mp h2)]
+    | k + 1 =>
+      simp at hk h
       simp[List.getElem_cons_succ]
-      simp at h
-      rw[h ⟨k, this⟩ ]
-      simp
+      simp[h ⟨k, (by simp[hk])⟩ ]
       ring_nf
-      have (m : ℕ) : Even (2 + m) ↔ Even m := by
-        have aux : m ≤ 2 + m := by omega
-        apply (Nat.even_sub aux).mp
-        simp
+      have even_add_two (m : ℕ) : Even (2 + m) ↔ Even m := by
+        simp[(Nat.even_sub (by omega: m ≤ 2 + m)).mp]
       by_cases h_even : Even (n + k)
-      · simp [if_pos h_even]
-        rw[← this (n+k)] at h_even
-        rw[← Nat.add_assoc 2 n k] at h_even
-        simp [if_pos h_even]
-      · simp [if_neg h_even]
-        rw[← this (n+k)] at h_even
-        rw[← Nat.add_assoc 2 n k] at h_even
-        simp [if_neg h_even]
+      · rw [if_pos h_even]
+        rw[← even_add_two (n+k), ← Nat.add_assoc 2 n k] at h_even
+        rw [if_pos h_even]
+      · rw [if_neg h_even]
+        rw[← even_add_two (n+k), ← Nat.add_assoc 2 n k] at h_even
+        rw [if_neg h_even]
 
 lemma getElem_alternatingWord (i j : B) (p k : ℕ) (h : k < p) :
     (alternatingWord i j p)[k]'(by simp; exact h) =  (if Even (p + k) then i else j) := by
-  have h' : k < (alternatingWord i j p).length := by simp[h]
-  rw[← getElem_alternatingWord_aux i j p ⟨k, h'⟩]
-  simp
+  simp[← getElem_alternatingWord_aux i j p ⟨k, (by simp[h])⟩]
 
 lemma getElem_alternatingWord_swapIndices (i j : B) (p k : ℕ) (h : k + 1 < p) :
    (alternatingWord i j p)[k+1]'(by simp; exact h) =
@@ -140,7 +124,7 @@ theorem getElem_leftInvSeq (l : List B) (j : ℕ) (h : j < l.length) :
   rw [← List.getD_eq_getElem (cs.leftInvSeq l) 1, getD_leftInvSeq]
   simp[h]
 
-lemma listTake_of_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
+lemma listTake_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
     List.take k (alternatingWord i j (2 * p)) =
     if Even k then alternatingWord i j k else alternatingWord j i k := by
   induction k with
@@ -168,10 +152,10 @@ lemma listTake_of_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
         omega
 
 
-lemma listTake_succ_of_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
+lemma listTake_succ_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
     List.take (k + 1) (alternatingWord i j (2 * p)) =
     i :: (List.take k (alternatingWord j i (2 * p))) := by
-  rw[listTake_of_alternatingWord j i k (by omega), listTake_of_alternatingWord i j (k+1) h]
+  rw[listTake_alternatingWord j i k (by omega), listTake_alternatingWord i j (k+1) h]
 
   by_cases h_even : Even k
   · simp [h_even, Nat.not_even_iff_odd.mpr (Even.add_one h_even), alternatingWord_succ', h_even]
@@ -182,19 +166,19 @@ lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k 
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k + 1]'(by simp; exact h) =
     MulAut.conj (s i) ((leftInvSeq cs (alternatingWord j i (2 * p)))[k]'(by simp; linarith)) := by
 
-  rw [CoxeterSystem.get_leftInvSeq cs (alternatingWord i j (2 * p)) ⟨k + 1, by simp; exact h⟩,
-      CoxeterSystem.get_leftInvSeq cs (alternatingWord j i (2 * p)) ⟨k, by simp; linarith ⟩]
+  rw [cs.getElem_leftInvSeq (alternatingWord i j (2 * p)) (k + 1),
+      cs.getElem_leftInvSeq (alternatingWord j i (2 * p)) k]
   simp only [MulAut.conj]
 
   have h_take : cs.wordProd (List.take (k + 1) (alternatingWord i j (2 * p))) = cs.simple i *
       (cs.wordProd (List.take k (alternatingWord j i (2 * p)))) := by
-    rw [listTake_succ_of_alternatingWord i j p k h]
+    rw [listTake_succ_alternatingWord i j p k h]
     rw [cs.wordProd_cons]
 
   rw [h_take]
   simp [mul_assoc]
   rw[getElem_alternatingWord_swapIndices i j (2 * p) k]
-  exact h
+
 
 theorem alternatingWord_of_get_leftInvSeq_eq_alternatingWord
     (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
