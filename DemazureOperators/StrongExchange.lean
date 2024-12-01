@@ -165,20 +165,13 @@ lemma listTake_succ_alternatingWord (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2
 lemma leftInvSeq_alternatingWord_induction (i j : B) (p : ℕ) (k : ℕ) (h : k + 1 < 2 * p) :
     (leftInvSeq cs (alternatingWord i j (2 * p)))[k + 1]'(by simp; exact h) =
     MulAut.conj (s i) ((leftInvSeq cs (alternatingWord j i (2 * p)))[k]'(by simp; linarith)) := by
-
   rw [cs.getElem_leftInvSeq (alternatingWord i j (2 * p)) (k + 1),
       cs.getElem_leftInvSeq (alternatingWord j i (2 * p)) k]
   simp only [MulAut.conj]
 
-  have h_take : cs.wordProd (List.take (k + 1) (alternatingWord i j (2 * p))) = cs.simple i *
-      (cs.wordProd (List.take k (alternatingWord j i (2 * p)))) := by
-    rw [listTake_succ_alternatingWord i j p k h]
-    rw [cs.wordProd_cons]
-
-  rw [h_take]
-  simp [mul_assoc]
+  simp [listTake_succ_alternatingWord i j p k h, cs.wordProd_cons, mul_assoc]
   rw[getElem_alternatingWord_swapIndices i j (2 * p) k]
-
+  omega
 
 theorem alternatingWord_of_get_leftInvSeq_eq_alternatingWord
     (i j : B) (p : ℕ) (k : ℕ) (h : k < 2 * p) :
