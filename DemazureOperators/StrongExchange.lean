@@ -144,17 +144,6 @@ theorem get_leftInvSeq (l : List B) (j : Fin l.length) :
   rw [getD_leftInvSeq]
   simp
 
-lemma eq_flip_variables (i j : B) (p : ℕ) : (if Even p then j else i) = if Even (p + 1) then i else j := by
-  by_cases h : Even p
-  · simp [h]
-    apply Even.add_one at h
-    apply (@Nat.not_even_iff_odd (p+1)).mpr at h
-    simp [if_neg h]
-  · simp [h]
-    simp at h
-    apply Odd.add_one at h
-    simp [if_pos h]
-
 lemma list_take_alternatingWord (i j : B) (k : ℕ) (h : k < 2 * p) :
   List.take k (alternatingWord i j (2 * p)) = if Even k then alternatingWord i j k else alternatingWord j i k := by
   induction k with
